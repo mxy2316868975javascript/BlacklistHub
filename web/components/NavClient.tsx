@@ -18,6 +18,7 @@ export default function NavClient({ username = "", role = "" }: Props) {
 		setName(username || "");
 		setUserRole(role || "");
 	}, [username, role]);
+
 	useEffect(() => {
 		// 客户端兜底：若没有服务端注入的 props，则尝试 /api/me 获取，避免 SSR/CSR 不一致
 		if (!name) {
@@ -29,7 +30,7 @@ export default function NavClient({ username = "", role = "" }: Props) {
 				} catch {}
 			})();
 		}
-	}, []);
+	}, [name]);
 
 	const current = useMemo(() => {
 		if (pathname?.startsWith("/dashboard")) return "dashboard";
@@ -57,7 +58,7 @@ export default function NavClient({ username = "", role = "" }: Props) {
 
 	return (
 		<header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-neutral-100">
-			<div className="max-w-screen-xl mx-auto h-14 flex items-center justify-between">
+			<div className="px-6 mx-auto h-14 flex items-center justify-between">
 				{/* Brand */}
 				<Link href="/" className="flex items-center gap-2">
 					<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold">
@@ -133,7 +134,21 @@ export default function NavClient({ username = "", role = "" }: Props) {
 								{ type: "divider" as const },
 								{
 									key: "logout",
-									label: <span onClick={logout}>退出登录</span>,
+									label: (
+										<button
+											type="button"
+											onClick={logout}
+											onKeyDown={(e) => {
+												if (e.key === "Enter" || e.key === " ") {
+													e.preventDefault();
+													logout();
+												}
+											}}
+											className="border-none bg-transparent p-0 cursor-pointer text-inherit font-inherit"
+										>
+											退出登录
+										</button>
+									),
 								},
 							],
 						}}

@@ -13,7 +13,7 @@ export default function LoginPage() {
 		try {
 			await axios.post("/api/auth/login", values);
 			message.success("登录成功");
-			router.push("/dashboard");
+			router.push("/");
 		} catch (e) {
 			const err = e as AxiosError<{ message?: string }>;
 			message.error(err?.response?.data?.message || "登录失败");

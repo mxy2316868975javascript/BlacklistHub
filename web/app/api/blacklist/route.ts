@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
 	const status = searchParams.get("status") || undefined;
 	const source = searchParams.get("source") || undefined;
 	const reason_code = searchParams.get("reason_code") || undefined;
+	const region = searchParams.get("region") || undefined;
 	const keyword = searchParams.get("keyword")?.toLowerCase() || undefined;
 	const start = searchParams.get("start") || undefined;
 	const end = searchParams.get("end") || undefined;
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
 	if (status) q.status = status;
 	if (source) q.source = source;
 	if (reason_code) q.reason_code = reason_code;
+	if (region) q.region = region;
 	if (start || end) {
 		const range: { $gte?: Date; $lte?: Date } = {};
 		if (start) range.$gte = new Date(start);
@@ -55,8 +57,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
 	const body = await request.json().catch(() => ({}));
-	const { type, value, reason, reason_code, risk_level, source, expires_at } =
-		body || {};
+	const {
+		type,
+		value,
+		reason,
+		reason_code,
+		risk_level,
+		source,
+		region,
+		expires_at,
+	} = body || {};
 	if (!type || !value || !reason || !reason_code || !risk_level)
 		return NextResponse.json(
 			{ message: "缺少参数: 请提供 类型/值/风险等级/理由码/原因摘要" },
@@ -122,6 +132,7 @@ export async function POST(request: NextRequest) {
 		reason_code,
 		risk_level,
 		source,
+		region: region || null, // 将空字符串转换为 null
 		sources: source ? [source] : [],
 		operator: me.username,
 		expires_at: exp,

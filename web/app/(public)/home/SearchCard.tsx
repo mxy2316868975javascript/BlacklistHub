@@ -9,9 +9,12 @@ import {
 	type BlacklistStatus,
 	type BlacklistType,
 	getReasonCodeLabel,
+	getRegionLabel,
 	getSourceLabel,
 	REASON_CODE_OPTIONS,
+	REGION_OPTIONS,
 	type ReasonCode,
+	type Region,
 	RISK_LEVEL_OPTIONS,
 	type RiskLevel,
 	SOURCE_OPTIONS,
@@ -34,6 +37,7 @@ export default function SearchCard() {
 		status: undefined as BlacklistStatus | undefined,
 		source: undefined as SourceType | undefined,
 		reason_code: undefined as ReasonCode | undefined,
+		region: undefined as Region | undefined,
 		keyword: "",
 		start: undefined as string | undefined,
 		end: undefined as string | undefined,
@@ -98,7 +102,7 @@ export default function SearchCard() {
 	return (
 		<div className="space-y-4">
 			<Card>
-				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
 					<Select
 						allowClear
 						placeholder="类型"
@@ -137,6 +141,22 @@ export default function SearchCard() {
 						filterOption={(input, option) =>
 							(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
 						}
+					/>
+					<Select
+						allowClear
+						placeholder="地区"
+						value={form.region}
+						onChange={(v) => setForm((f) => ({ ...f, region: v }))}
+						options={REGION_OPTIONS}
+						showSearch
+						filterOption={(input, option) => {
+							if (!input) return true;
+							const searchText = input.toLowerCase();
+							// 搜索选项标签
+							if (option?.label?.toLowerCase().includes(searchText))
+								return true;
+							return false;
+						}}
 					/>
 					<Input
 						placeholder="关键词（值/原因/操作人）"
@@ -320,7 +340,7 @@ export default function SearchCard() {
 											</div>
 
 											{/* 详细信息网格 */}
-											<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+											<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
 												<div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-3 border-l-4 border-blue-400">
 													<div className="text-xs text-blue-600 font-medium mb-1">
 														类型
@@ -362,6 +382,14 @@ export default function SearchCard() {
 													</div>
 													<div className="font-bold text-gray-900 truncate">
 														{i.operator}
+													</div>
+												</div>
+												<div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-xl p-3 border-l-4 border-indigo-400">
+													<div className="text-xs text-indigo-600 font-medium mb-1">
+														地区
+													</div>
+													<div className="font-bold text-gray-900 truncate">
+														{getRegionLabel(i.region)}
 													</div>
 												</div>
 											</div>

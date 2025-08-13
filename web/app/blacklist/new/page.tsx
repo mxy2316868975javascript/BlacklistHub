@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import {
 	REASON_CODE_OPTIONS,
+	REGION_OPTIONS,
 	RISK_LEVEL_OPTIONS,
 	SOURCE_OPTIONS,
 	TYPE_OPTIONS,
@@ -63,7 +64,12 @@ export default function NewBlacklistPage() {
 	];
 
 	const onFinish = async (values: Record<string, unknown>) => {
-		const res = await axios.post("/api/blacklist", values);
+		// 确保地区字段始终存在，即使为空也要传递
+		const submitData = {
+			...values,
+			region: values.region || null, // 确保地区字段存在
+		};
+		const res = await axios.post("/api/blacklist", submitData);
 		const docId = res.data?.doc?._id || res.data?._id;
 		if (res.data?.merged) message.info("检测到重复，已合并来源");
 		message.success("已保存");
@@ -128,6 +134,21 @@ export default function NewBlacklistPage() {
 								placeholder="请选择来源"
 								allowClear
 								options={SOURCE_OPTIONS}
+							/>
+						</Form.Item>
+						<Form.Item name="region" label="地区">
+							<Select
+								placeholder="请选择地区"
+								allowClear
+								options={REGION_OPTIONS}
+								showSearch
+								filterOption={(input, option) => {
+									if (!input) return true;
+									const searchText = input.toLowerCase();
+									return (option?.label ?? "")
+										.toLowerCase()
+										.includes(searchText);
+								}}
 							/>
 						</Form.Item>
 					</div>

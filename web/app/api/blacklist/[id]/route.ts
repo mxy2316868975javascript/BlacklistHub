@@ -25,8 +25,17 @@ export async function PUT(
 	const { id } = await params;
 	await connectDB();
 	const body = await request.json().catch(() => ({}));
-	const { type, value, reason, reason_code, risk_level, source, status, note } =
-		body || {};
+	const {
+		type,
+		value,
+		reason,
+		reason_code,
+		risk_level,
+		source,
+		region,
+		status,
+		note,
+	} = body || {};
 
 	const authHeader = (request.headers as any).get?.("authorization");
 	const cookie = (request as any).headers?.get?.("cookie");
@@ -107,6 +116,7 @@ export async function PUT(
 	if (reason) (doc as any).reason = reason;
 	if (reason_code) (doc as any).reason_code = reason_code;
 	if (risk_level) (doc as any).risk_level = risk_level;
+	if (region !== undefined) (doc as any).region = region || null; // 将空字符串转换为 null
 
 	if (status) {
 		(doc as any).status = status;

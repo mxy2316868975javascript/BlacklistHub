@@ -21,6 +21,7 @@ import useSWR from "swr";
 import {
 	type BlacklistItem,
 	REASON_CODE_OPTIONS,
+	REGION_OPTIONS,
 	RISK_LEVEL_OPTIONS,
 	SOURCE_OPTIONS,
 	TYPE_OPTIONS,
@@ -58,7 +59,18 @@ export default function BlacklistDetailPage() {
 
 	const [form] = Form.useForm<Partial<BlackItem>>();
 	React.useEffect(() => {
-		if (item) form.setFieldsValue(item);
+		if (item) {
+			// 只设置表单需要的字段，避免包含不必要的数据
+			form.setFieldsValue({
+				type: item.type,
+				value: item.value,
+				reason: item.reason,
+				reason_code: item.reason_code,
+				risk_level: item.risk_level,
+				source: item.source,
+				region: item.region,
+			});
+		}
 	}, [item, form]);
 
 	const statusColor: Record<BlackItem["status"], string> = {
@@ -104,9 +116,7 @@ export default function BlacklistDetailPage() {
 								</div>
 							</div>
 							<Space>
-								<Button onClick={() => router.push("/blacklist")}>
-									返回列表
-								</Button>
+								<Button onClick={() => router.push("/")}>返回列表</Button>
 								<Button type="primary" onClick={() => form.submit()}>
 									保存
 								</Button>
@@ -117,9 +127,10 @@ export default function BlacklistDetailPage() {
 							form={form}
 							layout="vertical"
 							onFinish={async (values) => {
-								await axios.put(`/api/blacklist/${item._id}`, values);
+								await axios.put(`/api/blacklist/${item._id}`, {
+									...values,
+								});
 								message.success("已保存");
-								mutate();
 							}}
 						>
 							<Row gutter={12}>
@@ -192,6 +203,21 @@ export default function BlacklistDetailPage() {
 									placeholder="请选择来源"
 									allowClear
 									options={SOURCE_OPTIONS}
+								/>
+							</Form.Item>
+							<Form.Item name="region" label="地区">
+								<Select
+									placeholder="请选择地区"
+									allowClear
+									options={REGION_OPTIONS}
+									showSearch
+									filterOption={(input, option) => {
+										if (!input) return true;
+										const searchText = input.toLowerCase();
+										return (option?.label ?? "")
+											.toLowerCase()
+											.includes(searchText);
+									}}
 								/>
 							</Form.Item>
 						</Form>

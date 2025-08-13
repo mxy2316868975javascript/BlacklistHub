@@ -4,7 +4,12 @@ import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React from "react";
 import useSWR from "swr";
-import { getReasonCodeLabel, type ReasonCode } from "@/types/blacklist";
+import {
+	getReasonCodeLabel,
+	getRegionLabel,
+	type ReasonCode,
+	type Region,
+} from "@/types/blacklist";
 
 type BlackItem = {
 	_id: string;
@@ -21,6 +26,7 @@ type BlackItem = {
 		| "partner"
 		| "regulatory"
 		| "other";
+	region?: Region;
 	sources?: string[];
 	status: "draft" | "pending" | "published" | "rejected" | "retracted";
 	operator: string;
@@ -96,6 +102,15 @@ export default function BlacklistPage() {
 			dataIndex: "sources",
 			key: "sources",
 			render: (s?: string[]) => s?.length ?? 0,
+		},
+		{
+			title: "地区",
+			width: 120,
+			dataIndex: "region",
+			key: "region",
+			render: (region: Region) => (
+				<span title={region}>{getRegionLabel(region)}</span>
+			),
 		},
 		{
 			title: "操作人",

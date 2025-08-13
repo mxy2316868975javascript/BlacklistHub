@@ -5,13 +5,13 @@ import Blacklist from "@/models/Blacklist";
 export const runtime = "nodejs";
 
 export async function GET() {
-  await connectDB();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const [total, today] = await Promise.all([
-    Blacklist.countDocuments({}),
-    Blacklist.countDocuments({ created_at: { $gte: todayStart } }),
-  ]);
-  return NextResponse.json({ total, today });
+	await connectDB();
+	const todayStart = new Date();
+	todayStart.setHours(0, 0, 0, 0);
+	const [total, published, today] = await Promise.all([
+		Blacklist.countDocuments({}),
+		Blacklist.countDocuments({ status: "published" }),
+		Blacklist.countDocuments({ created_at: { $gte: todayStart } }),
+	]);
+	return NextResponse.json({ total, published, today });
 }
-

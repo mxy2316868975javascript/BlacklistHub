@@ -1,14 +1,5 @@
 "use client";
-import {
-	Button,
-	Card,
-	Form,
-	Input,
-	message,
-	Select,
-	Space,
-	Table,
-} from "antd";
+import { Button, Card, Form, Input, message, Select, Space, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React from "react";
@@ -53,7 +44,9 @@ export default function BlacklistPage() {
 		page: 1,
 		pageSize: 10,
 	});
-	const [role, setRole] = React.useState<"reporter" | "reviewer" | "admin">("reporter");
+	const [role, setRole] = React.useState<"reporter" | "reviewer" | "admin">(
+		"reporter",
+	);
 	const { data, mutate, isLoading } = useSWR(
 		["/api/blacklist", query],
 		([url, p]) => fetcher(url, p),
@@ -72,11 +65,27 @@ export default function BlacklistPage() {
 	const columns: ColumnsType<BlackItem> = [
 		{ title: "类型", width: 100, dataIndex: "type", key: "type" },
 		{ title: "值", dataIndex: "value", key: "value" },
-		{ title: "风险等级", width: 100, dataIndex: "risk_level", key: "risk_level" },
-		{ title: "理由码", width: 120, dataIndex: "reason_code", key: "reason_code" },
+		{
+			title: "风险等级",
+			width: 100,
+			dataIndex: "risk_level",
+			key: "risk_level",
+		},
+		{
+			title: "理由码",
+			width: 120,
+			dataIndex: "reason_code",
+			key: "reason_code",
+		},
 		{ title: "原因", dataIndex: "reason", key: "reason" },
 		{ title: "状态", width: 100, dataIndex: "status", key: "status" },
-		{ title: "来源数", width: 100, dataIndex: "sources", key: "sources", render: (s?: string[]) => s?.length ?? 0 },
+		{
+			title: "来源数",
+			width: 100,
+			dataIndex: "sources",
+			key: "sources",
+			render: (s?: string[]) => s?.length ?? 0,
+		},
 		{
 			title: "操作人",
 			width: 140,
@@ -100,12 +109,88 @@ export default function BlacklistPage() {
 			fixed: "right" as const,
 			render: (_: unknown, record: BlackItem) => (
 				<Space>
-					<Button type="link" onClick={() => { window.location.href = `/blacklist/${record._id}`; }}>详情</Button>
-					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "pending" }); message.success("已提交复核"); mutate(); }} disabled={record.status !== "draft"}>提交复核</Button>
-					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "published" }); message.success("已发布"); mutate(); }} disabled={record.status !== "pending" || !(role === "reviewer" || role === "admin")}>发布</Button>
-					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "rejected" }); message.success("已退回"); mutate(); }} disabled={record.status !== "pending" || !(role === "reviewer" || role === "admin")}>退回</Button>
-					<Button type="link" danger onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "retracted" }); message.success("已撤销"); mutate(); }} disabled={record.status !== "published" || !(role === "reviewer" || role === "admin")}>撤销</Button>
-					<Button type="link" danger onClick={async () => { await axios.delete(`/api/blacklist/${record._id}`); message.success("已删除"); mutate(); }} disabled={!(role === "admin")}>删除</Button>
+					<Button
+						type="link"
+						onClick={() => {
+							window.location.href = `/blacklist/${record._id}`;
+						}}
+					>
+						详情
+					</Button>
+					<Button
+						type="link"
+						onClick={async () => {
+							await axios.put(`/api/blacklist/${record._id}`, {
+								status: "pending",
+							});
+							message.success("已提交复核");
+							mutate();
+						}}
+						disabled={record.status !== "draft"}
+					>
+						提交复核
+					</Button>
+					<Button
+						type="link"
+						onClick={async () => {
+							await axios.put(`/api/blacklist/${record._id}`, {
+								status: "published",
+							});
+							message.success("已发布");
+							mutate();
+						}}
+						disabled={
+							record.status !== "pending" ||
+							!(role === "reviewer" || role === "admin")
+						}
+					>
+						发布
+					</Button>
+					<Button
+						type="link"
+						onClick={async () => {
+							await axios.put(`/api/blacklist/${record._id}`, {
+								status: "rejected",
+							});
+							message.success("已退回");
+							mutate();
+						}}
+						disabled={
+							record.status !== "pending" ||
+							!(role === "reviewer" || role === "admin")
+						}
+					>
+						退回
+					</Button>
+					<Button
+						type="link"
+						danger
+						onClick={async () => {
+							await axios.put(`/api/blacklist/${record._id}`, {
+								status: "retracted",
+							});
+							message.success("已撤销");
+							mutate();
+						}}
+						disabled={
+							record.status !== "published" ||
+							!(role === "reviewer" || role === "admin")
+						}
+					>
+						撤销
+					</Button>
+					<Button
+						type="link"
+						danger
+						onClick={async () => {
+							await axios.delete(`/api/blacklist/${record._id}`);
+							message.success("已删除");
+							mutate();
+						}}
+						disabled={!(role === "admin")}
+					>
+						删除
+					</Button>
 				</Space>
 			),
 		},
@@ -116,7 +201,15 @@ export default function BlacklistPage() {
 			<Card className="!mb-4">
 				<Form
 					layout="inline"
-					onFinish={(v) => setQuery({ keyword: v.keyword ?? "", type: v.type, risk_level: v.risk_level, start: v.start, end: v.end })}
+					onFinish={(v) =>
+						setQuery({
+							keyword: v.keyword ?? "",
+							type: v.type,
+							risk_level: v.risk_level,
+							start: v.start,
+							end: v.end,
+						})
+					}
 				>
 					<Form.Item name="type" label="类型">
 						<div className="w-[200px]">
@@ -133,7 +226,14 @@ export default function BlacklistPage() {
 					</Form.Item>
 					<Form.Item name="risk_level" label="风险">
 						<div className="w-[160px]">
-							<Select allowClear options={[{label: "低", value: "low"}, {label: "中", value: "medium"}, {label: "高", value: "high"}]} />
+							<Select
+								allowClear
+								options={[
+									{ label: "低", value: "low" },
+									{ label: "中", value: "medium" },
+									{ label: "高", value: "high" },
+								]}
+							/>
 						</div>
 					</Form.Item>
 					<Form.Item name="keyword" label="关键词">
@@ -147,8 +247,16 @@ export default function BlacklistPage() {
 					</Form.Item>
 					<Form.Item>
 						<Space>
-							<Button type="primary" htmlType="submit">查询</Button>
-							<Button onClick={() => { window.location.href = "/blacklist/new"; }}>新建</Button>
+							<Button type="primary" htmlType="submit">
+								查询
+							</Button>
+							<Button
+								onClick={() => {
+									window.location.href = "/blacklist/new";
+								}}
+							>
+								新建
+							</Button>
 							<Button
 								onClick={async () => {
 									const res = await axios.get("/api/blacklist/export", {
@@ -208,8 +316,6 @@ export default function BlacklistPage() {
 					}
 				/>
 			</Card>
-
 		</div>
 	);
 }
-

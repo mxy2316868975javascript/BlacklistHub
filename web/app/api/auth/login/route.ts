@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return NextResponse.json({ message: "密码错误" }, { status: 400 });
 
-  const token = signToken({ uid: user._id, username: user.username });
-  const res = NextResponse.json({ token, user: { username: user.username } });
+  const token = signToken({ uid: user._id, username: user.username, role: user.role || "reporter" });
+  const res = NextResponse.json({ token, user: { username: user.username, role: user.role || "reporter" } });
   res.cookies.set("token", token, { httpOnly: true, sameSite: "lax", path: "/" });
   return res;
 }

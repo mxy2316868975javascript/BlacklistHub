@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const { username, password } = body || {};
+  const { username, password, role } = body || {};
   if (!username || !password) return NextResponse.json({ message: "缺少参数" }, { status: 400 });
 
   await connectDB();
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (exists) return NextResponse.json({ message: "用户名已存在" }, { status: 400 });
 
   const password_hash = await bcrypt.hash(password, 10);
-  await User.create({ username, password_hash });
+  await User.create({ username, password_hash, role: role ?? "reporter" });
   return NextResponse.json({ ok: true });
 }
 

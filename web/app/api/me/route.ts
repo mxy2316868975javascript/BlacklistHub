@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : req.cookies.get("token")?.value;
-  const payload = verifyToken<{ uid: string; username: string }>(token);
+  const payload = verifyToken<{ uid: string; username: string; role?: string }>(token);
   if (!payload) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ user: { uid: payload.uid, username: payload.username } });
+  return NextResponse.json({ user: { uid: payload.uid, username: payload.username, role: payload.role || "reporter" } });
 }
 

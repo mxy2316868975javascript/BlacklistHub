@@ -4,6 +4,7 @@ const UserSchema = new Schema(
   {
     username: { type: String, required: true, unique: true },
     password_hash: { type: String, required: true },
+    role: { type: String, enum: ["reporter", "reviewer", "admin"], default: "reporter", index: true },
   },
   { versionKey: false }
 );

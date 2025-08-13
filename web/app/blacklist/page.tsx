@@ -4,7 +4,6 @@ import {
 	Card,
 	Form,
 	Input,
-	Modal,
 	message,
 	Select,
 	Space,
@@ -20,13 +19,23 @@ type BlackItem = {
 	type: "user" | "ip" | "email";
 	value: string;
 	reason: string;
+	reason_code: string;
+	risk_level: "low" | "medium" | "high";
+	source?: string;
+	sources?: string[];
+	status: "draft" | "pending" | "published" | "rejected" | "retracted";
 	operator: string;
 	created_at: string;
+	updated_at: string;
+	expires_at?: string;
 };
 
 type Query = {
 	keyword?: string;
 	type?: BlackItem["type"];
+	risk_level?: BlackItem["risk_level"];
+	start?: string;
+	end?: string;
 	page?: number;
 	pageSize?: number;
 };
@@ -40,20 +49,34 @@ export default function BlacklistPage() {
 	const [query, setQuery] = React.useState<Query>({
 		keyword: "",
 		type: undefined,
+		risk_level: undefined,
 		page: 1,
 		pageSize: 10,
 	});
-	const [modalOpen, setModalOpen] = React.useState(false);
-	const [editing, setEditing] = React.useState<BlackItem | null>(null);
+	const [role, setRole] = React.useState<"reporter" | "reviewer" | "admin">("reporter");
 	const { data, mutate, isLoading } = useSWR(
 		["/api/blacklist", query],
 		([url, p]) => fetcher(url, p),
 	);
+	React.useEffect(() => {
+		(async () => {
+			try {
+				const res = await axios.get("/api/me");
+				setRole(res.data?.user?.role || "reporter");
+			} catch {
+				setRole("reporter");
+			}
+		})();
+	}, []);
 
 	const columns: ColumnsType<BlackItem> = [
 		{ title: "类型", width: 100, dataIndex: "type", key: "type" },
 		{ title: "值", dataIndex: "value", key: "value" },
+		{ title: "风险等级", width: 100, dataIndex: "risk_level", key: "risk_level" },
+		{ title: "理由码", width: 120, dataIndex: "reason_code", key: "reason_code" },
 		{ title: "原因", dataIndex: "reason", key: "reason" },
+		{ title: "状态", width: 100, dataIndex: "status", key: "status" },
+		{ title: "来源数", width: 100, dataIndex: "sources", key: "sources", render: (s?: string[]) => s?.length ?? 0 },
 		{
 			title: "操作人",
 			width: 140,
@@ -62,41 +85,27 @@ export default function BlacklistPage() {
 			key: "operator",
 		},
 		{
-			title: "录入时间",
+			title: "最近更新",
 			width: 180,
 			align: "center" as const,
-			dataIndex: "created_at",
-			key: "created_at",
+			dataIndex: "updated_at",
+			key: "updated_at",
 			render: (t: string) => new Date(t).toLocaleString(),
 		},
 		{
 			title: "操作",
 			key: "actions",
-			width: 120,
+			width: 240,
 			align: "center" as const,
 			fixed: "right" as const,
 			render: (_: unknown, record: BlackItem) => (
 				<Space>
-					<Button
-						type="link"
-						onClick={() => {
-							setEditing(record);
-							setModalOpen(true);
-						}}
-					>
-						编辑
-					</Button>
-					<Button
-						type="link"
-						danger
-						onClick={async () => {
-							await axios.delete(`/api/blacklist/${record._id}`);
-							message.success("已删除");
-							mutate();
-						}}
-					>
-						删除
-					</Button>
+					<Button type="link" onClick={() => { window.location.href = `/blacklist/${record._id}`; }}>详情</Button>
+					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "pending" }); message.success("已提交复核"); mutate(); }} disabled={record.status !== "draft"}>提交复核</Button>
+					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "published" }); message.success("已发布"); mutate(); }} disabled={record.status !== "pending" || !(role === "reviewer" || role === "admin")}>发布</Button>
+					<Button type="link" onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "rejected" }); message.success("已退回"); mutate(); }} disabled={record.status !== "pending" || !(role === "reviewer" || role === "admin")}>退回</Button>
+					<Button type="link" danger onClick={async () => { await axios.put(`/api/blacklist/${record._id}`, { status: "retracted" }); message.success("已撤销"); mutate(); }} disabled={record.status !== "published" || !(role === "reviewer" || role === "admin")}>撤销</Button>
+					<Button type="link" danger onClick={async () => { await axios.delete(`/api/blacklist/${record._id}`); message.success("已删除"); mutate(); }} disabled={!(role === "admin")}>删除</Button>
 				</Space>
 			),
 		},
@@ -107,7 +116,7 @@ export default function BlacklistPage() {
 			<Card className="!mb-4">
 				<Form
 					layout="inline"
-					onFinish={(v) => setQuery({ keyword: v.keyword ?? "", type: v.type })}
+					onFinish={(v) => setQuery({ keyword: v.keyword ?? "", type: v.type, risk_level: v.risk_level, start: v.start, end: v.end })}
 				>
 					<Form.Item name="type" label="类型">
 						<div className="w-[200px]">
@@ -122,22 +131,24 @@ export default function BlacklistPage() {
 							/>
 						</div>
 					</Form.Item>
+					<Form.Item name="risk_level" label="风险">
+						<div className="w-[160px]">
+							<Select allowClear options={[{label: "低", value: "low"}, {label: "中", value: "medium"}, {label: "高", value: "high"}]} />
+						</div>
+					</Form.Item>
 					<Form.Item name="keyword" label="关键词">
-						<Input placeholder="值/原因/操作人" allowClear />
+						<Input placeholder="值/原因/理由码/来源" allowClear />
+					</Form.Item>
+					<Form.Item name="start" label="开始">
+						<Input type="date" />
+					</Form.Item>
+					<Form.Item name="end" label="结束">
+						<Input type="date" />
 					</Form.Item>
 					<Form.Item>
 						<Space>
-							<Button type="primary" htmlType="submit">
-								查询
-							</Button>
-							<Button
-								onClick={() => {
-									setEditing(null);
-									setModalOpen(true);
-								}}
-							>
-								新建
-							</Button>
+							<Button type="primary" htmlType="submit">查询</Button>
+							<Button onClick={() => { window.location.href = "/blacklist/new"; }}>新建</Button>
 							<Button
 								onClick={async () => {
 									const res = await axios.get("/api/blacklist/export", {
@@ -198,60 +209,7 @@ export default function BlacklistPage() {
 				/>
 			</Card>
 
-			<EditModal
-				open={modalOpen}
-				initial={editing}
-				onCancel={() => setModalOpen(false)}
-				onOk={async (values) => {
-					if (editing?._id) {
-						await axios.put(`/api/blacklist/${editing._id}`, values);
-					} else {
-						await axios.post(`/api/blacklist`, values);
-					}
-					message.success("已保存");
-					setModalOpen(false);
-					mutate();
-				}}
-			/>
 		</div>
 	);
 }
 
-type EditModalProps = {
-	open: boolean;
-	onCancel: () => void;
-	onOk: (v: Partial<BlackItem>) => void;
-	initial: BlackItem | null;
-};
-function EditModal({ open, onCancel, onOk, initial }: EditModalProps) {
-	const [form] = Form.useForm<Partial<BlackItem>>();
-	React.useEffect(() => {
-		form.setFieldsValue(initial ?? { type: "user" });
-	}, [initial, form]);
-	return (
-		<Modal
-			open={open}
-			onCancel={onCancel}
-			onOk={() => form.submit()}
-			title={initial?._id ? "编辑条目" : "新建条目"}
-		>
-			<Form form={form} layout="vertical" onFinish={onOk}>
-				<Form.Item name="type" label="类型" rules={[{ required: true }]}>
-					<Select
-						options={[
-							{ label: "用户", value: "user" },
-							{ label: "IP", value: "ip" },
-							{ label: "邮箱", value: "email" },
-						]}
-					/>
-				</Form.Item>
-				<Form.Item name="value" label="值" rules={[{ required: true }]}>
-					<Input />
-				</Form.Item>
-				<Form.Item name="reason" label="原因" rules={[{ required: true }]}>
-					<Input.TextArea rows={3} />
-				</Form.Item>
-			</Form>
-		</Modal>
-	);
-}

@@ -26,9 +26,44 @@ const BlacklistSchema = new Schema(
 			required: true,
 			index: true,
 		},
-		reason_code: { type: String, required: true, index: true },
+		reason_code: {
+			type: String,
+			enum: [
+				"fraud.payment",
+				"fraud.chargeback",
+				"fraud.identity",
+				"fraud.account",
+				"abuse.spam",
+				"abuse.harassment",
+				"abuse.phishing",
+				"abuse.malware",
+				"violation.terms",
+				"violation.policy",
+				"violation.legal",
+				"security.breach",
+				"security.suspicious",
+				"quality.fake",
+				"quality.duplicate",
+				"other.manual",
+				"other.system",
+			],
+			required: true,
+			index: true,
+		},
 		reason: { type: String, required: true }, // 证据摘要/备注
-		source: { type: String }, // 最初来源
+		source: {
+			type: String,
+			enum: [
+				"user_report",
+				"system_detection",
+				"manual_review",
+				"external_data",
+				"partner",
+				"regulatory",
+				"other",
+			],
+			index: true,
+		}, // 最初来源
 		sources: { type: [String], default: [] }, // 多来源合并
 		status: {
 			type: String,

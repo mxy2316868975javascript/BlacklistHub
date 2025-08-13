@@ -5,6 +5,12 @@ import { Button, Card, Form, Input, message, Select } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React from "react";
+import {
+	REASON_CODE_OPTIONS,
+	RISK_LEVEL_OPTIONS,
+	SOURCE_OPTIONS,
+	TYPE_OPTIONS,
+} from "@/types/blacklist";
 
 export default function NewBlacklistPage() {
 	const [form] = Form.useForm();
@@ -66,7 +72,7 @@ export default function NewBlacklistPage() {
 	};
 	return (
 		<div className="p-6">
-			<Card className="max-w-4xl mx-auto">
+			<Card className="mx-auto">
 				<div className="flex items-center justify-between">
 					<div>
 						<h2 className="text-lg font-semibold">创建黑名单条目</h2>
@@ -78,7 +84,6 @@ export default function NewBlacklistPage() {
 						保存
 					</Button>
 				</div>
-				<div className="my-4 border-t" />
 				<Form
 					form={form}
 					layout="vertical"
@@ -87,20 +92,7 @@ export default function NewBlacklistPage() {
 				>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<Form.Item name="type" label="类型" rules={[{ required: true }]}>
-							<div className="text-neutral-500 text-xs -mt-2 mb-2">
-								<InfoCircleOutlined className="mr-1" />
-								例如：abuse.spam、fraud.chargeback
-							</div>
-
-							<Select
-								options={[
-									{ label: "用户", value: "user" },
-									{ label: "IP", value: "ip" },
-									{ label: "邮箱", value: "email" },
-									{ label: "手机号", value: "phone" },
-									{ label: "域名", value: "domain" },
-								]}
-							/>
+							<Select options={TYPE_OPTIONS} />
 						</Form.Item>
 						<Form.Item name="value" label="值" rules={valueRules as any}>
 							<Input placeholder={valuePlaceholder} />
@@ -110,26 +102,33 @@ export default function NewBlacklistPage() {
 							label="风险等级"
 							rules={[{ required: true }]}
 						>
-							<Select
-								options={[
-									{ label: "低", value: "low" },
-									{ label: "中", value: "medium" },
-									{ label: "高", value: "high" },
-								]}
-							/>
+							<Select options={RISK_LEVEL_OPTIONS} />
 						</Form.Item>
 						<Form.Item
 							name="reason_code"
 							label="理由码"
 							rules={[{ required: true }]}
 						>
-							<Input placeholder="例如: abuse.spam, fraud.chargeback" />
+							<Select
+								placeholder="请选择理由码"
+								options={REASON_CODE_OPTIONS}
+								showSearch
+								filterOption={(input, option) =>
+									(option?.label ?? "")
+										.toLowerCase()
+										.includes(input.toLowerCase())
+								}
+							/>
 						</Form.Item>
 						<Form.Item name="expires_at" label="到期时间">
 							<Input type="date" />
 						</Form.Item>
 						<Form.Item name="source" label="来源">
-							<Input placeholder="例如: 举报人/系统/外部链接" />
+							<Select
+								placeholder="请选择来源"
+								allowClear
+								options={SOURCE_OPTIONS}
+							/>
 						</Form.Item>
 					</div>
 					<Form.Item

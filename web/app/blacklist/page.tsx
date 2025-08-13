@@ -4,15 +4,23 @@ import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React from "react";
 import useSWR from "swr";
+import { getReasonCodeLabel, type ReasonCode } from "@/types/blacklist";
 
 type BlackItem = {
 	_id: string;
 	type: "user" | "ip" | "email";
 	value: string;
 	reason: string;
-	reason_code: string;
+	reason_code: ReasonCode;
 	risk_level: "low" | "medium" | "high";
-	source?: string;
+	source?:
+		| "user_report"
+		| "system_detection"
+		| "manual_review"
+		| "external_data"
+		| "partner"
+		| "regulatory"
+		| "other";
 	sources?: string[];
 	status: "draft" | "pending" | "published" | "rejected" | "retracted";
 	operator: string;
@@ -73,9 +81,12 @@ export default function BlacklistPage() {
 		},
 		{
 			title: "理由码",
-			width: 120,
+			width: 180,
 			dataIndex: "reason_code",
 			key: "reason_code",
+			render: (reasonCode: ReasonCode) => (
+				<span title={reasonCode}>{getReasonCodeLabel(reasonCode)}</span>
+			),
 		},
 		{ title: "原因", dataIndex: "reason", key: "reason" },
 		{ title: "状态", width: 100, dataIndex: "status", key: "status" },
@@ -256,38 +267,6 @@ export default function BlacklistPage() {
 								}}
 							>
 								新建
-							</Button>
-							<Button
-								onClick={async () => {
-									const res = await axios.get("/api/blacklist/export", {
-										params: query,
-										responseType: "blob",
-									});
-									const url = window.URL.createObjectURL(new Blob([res.data]));
-									const link = document.createElement("a");
-									link.href = url;
-									link.download = "blacklist.csv";
-									link.click();
-									window.URL.revokeObjectURL(url);
-								}}
-							>
-								导出CSV
-							</Button>
-							<Button
-								onClick={async () => {
-									const res = await axios.get("/api/blacklist/export-json", {
-										params: query,
-										responseType: "blob",
-									});
-									const url = window.URL.createObjectURL(new Blob([res.data]));
-									const link = document.createElement("a");
-									link.href = url;
-									link.download = "blacklist.json";
-									link.click();
-									window.URL.revokeObjectURL(url);
-								}}
-							>
-								导出JSON
 							</Button>
 						</Space>
 					</Form.Item>

@@ -1,57 +1,75 @@
 "use client";
-import { Button, Card, DatePicker, Input, message, Select, Tag } from "antd";
+import { Button, Card, DatePicker, Input, message, Select } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
-import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect } from "react";
+import {
+	type BlacklistItem,
+	type BlacklistStatus,
+	type BlacklistType,
+	getReasonCodeLabel,
+	getSourceLabel,
+	REASON_CODE_OPTIONS,
+	type ReasonCode,
+	RISK_LEVEL_OPTIONS,
+	type RiskLevel,
+	SOURCE_OPTIONS,
+	type SourceType,
+	STATUS_OPTIONS,
+	TYPE_OPTIONS,
+} from "@/types/blacklist";
 
 export default function SearchCard() {
+	const router = useRouter();
 	const [loading, setLoading] = React.useState(false);
-	const [result, setResult] = React.useState<{ total?: number; items?: any[] }>(
-		{},
-	);
+	const [result, setResult] = React.useState<{
+		total?: number;
+		items?: BlacklistItem[];
+	}>({});
 
 	const [form, setForm] = React.useState({
-		type: undefined as undefined | "user" | "ip" | "email" | "phone" | "domain",
-		risk_level: undefined as undefined | "low" | "medium" | "high",
-		status: undefined as
-			| undefined
-			| "draft"
-			| "pending"
-			| "published"
-			| "rejected"
-			| "retracted",
+		type: undefined as BlacklistType | undefined,
+		risk_level: undefined as RiskLevel | undefined,
+		status: undefined as BlacklistStatus | undefined,
+		source: undefined as SourceType | undefined,
+		reason_code: undefined as ReasonCode | undefined,
 		keyword: "",
 		start: undefined as string | undefined,
 		end: undefined as string | undefined,
 	});
-	// 默认展示：已发布
-	React.useEffect(() => {
-		setForm((f) => ({ ...f, status: "" as any }));
-	}, []);
+
+	// 默认展示：空值（不设置默认状态）
+	// useEffect(() => {
+	// 	setForm((f) => ({ ...f, status: "published" }));
+	// }, []);
 
 	const [page, setPage] = React.useState(1);
 
-	const load = async (reset = false) => {
-		setLoading(true);
-		try {
-			const res = await axios.get("/api/blacklist", {
-				params: { ...form, page: reset ? 1 : page, pageSize: 10 },
-			});
-			if (reset) {
-				setResult(res.data || {});
-				setPage(1);
-			} else {
-				setResult((prev) => ({
-					total: res.data?.total || prev.total,
-					items: [...(prev.items || []), ...(res.data?.items || [])],
-				}));
+	const load = useCallback(
+		async (reset = false) => {
+			setLoading(true);
+			try {
+				const res = await axios.get("/api/blacklist", {
+					params: { ...form, page: reset ? 1 : page, pageSize: 10 },
+				});
+				if (reset) {
+					setResult(res.data || {});
+					setPage(1);
+				} else {
+					setResult((prev) => ({
+						total: res.data?.total || prev.total,
+						items: [...(prev.items || []), ...(res.data?.items || [])],
+					}));
+				}
+			} catch (e) {
+				message.error(`查询失败 ${e}`);
+			} finally {
+				setLoading(false);
 			}
-		} catch (e) {
-			message.error("查询失败");
-		} finally {
-			setLoading(false);
-		}
-	};
+		},
+		[form, page],
+	);
 
 	<Select
 		allowClear
@@ -59,7 +77,7 @@ export default function SearchCard() {
 		value={form.status}
 		onChange={(v) => setForm((f) => ({ ...f, status: v }))}
 		options={[
-			{ label: "全部", value: undefined as any },
+			{ label: "全部", value: undefined },
 			{ label: "草稿", value: "draft" },
 			{ label: "待复核", value: "pending" },
 			{ label: "已发布", value: "published" },
@@ -70,7 +88,7 @@ export default function SearchCard() {
 
 	useEffect(() => {
 		load(true);
-	}, []);
+	}, [load]);
 
 	const search = async () => {
 		setPage(1);
@@ -80,46 +98,48 @@ export default function SearchCard() {
 	return (
 		<div className="space-y-4">
 			<Card>
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
 					<Select
 						allowClear
 						placeholder="类型"
 						value={form.type}
 						onChange={(v) => setForm((f) => ({ ...f, type: v }))}
-						options={[
-							{ label: "用户", value: "user" },
-							{ label: "IP", value: "ip" },
-							{ label: "邮箱", value: "email" },
-							{ label: "手机号", value: "phone" },
-							{ label: "域名", value: "domain" },
-						]}
+						options={TYPE_OPTIONS}
 					/>
 					<Select
 						allowClear
 						placeholder="风险等级"
 						value={form.risk_level}
 						onChange={(v) => setForm((f) => ({ ...f, risk_level: v }))}
-						options={[
-							{ label: "低", value: "low" },
-							{ label: "中", value: "medium" },
-							{ label: "高", value: "high" },
-						]}
+						options={RISK_LEVEL_OPTIONS}
 					/>
 					<Select
 						allowClear
 						placeholder="状态"
 						value={form.status}
 						onChange={(v) => setForm((f) => ({ ...f, status: v }))}
-						options={[
-							{ label: "草稿", value: "draft" },
-							{ label: "待复核", value: "pending" },
-							{ label: "已发布", value: "published" },
-							{ label: "已退回", value: "rejected" },
-							{ label: "已撤销", value: "retracted" },
-						]}
+						options={STATUS_OPTIONS}
+					/>
+					<Select
+						allowClear
+						placeholder="来源"
+						value={form.source}
+						onChange={(v) => setForm((f) => ({ ...f, source: v }))}
+						options={SOURCE_OPTIONS}
+					/>
+					<Select
+						allowClear
+						placeholder="理由码"
+						value={form.reason_code}
+						onChange={(v) => setForm((f) => ({ ...f, reason_code: v }))}
+						options={REASON_CODE_OPTIONS}
+						showSearch
+						filterOption={(input, option) =>
+							(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+						}
 					/>
 					<Input
-						placeholder="关键词（值/原因/理由码/来源/操作人）"
+						placeholder="关键词（值/原因/操作人）"
 						value={form.keyword}
 						onChange={(e) =>
 							setForm((f) => ({ ...f, keyword: e.target.value }))
@@ -149,73 +169,269 @@ export default function SearchCard() {
 				</div>
 			</Card>
 
-			<Card loading={loading}>
-				<div className="flex items-center justify-between mb-3">
-					<div className="text-sm text-neutral-500">
-						共 {result.total || 0} 条结果
+			<div className="bg-gray-50 rounded-lg p-6">
+				<div className="flex items-center justify-between mb-6">
+					<div className="flex items-center gap-3">
+						<div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+						<h3 className="!mb-0 text-lg font-semibold text-gray-900">
+							搜索结果
+						</h3>
+						<span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+							{result.total || 0} 条
+						</span>
 					</div>
+					<Button
+						type="primary"
+						onClick={() => router.push("/blacklist/new")}
+						className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+					>
+						<svg
+							className="w-4 h-4"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							aria-label="添加图标"
+						>
+							<title>添加</title>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M12 4v16m8-8H4"
+							/>
+						</svg>
+						新增举报
+					</Button>
 				</div>
-				<div className="divide-y">
-					{(result.items || []).map((i) => (
-						<div key={i._id} className="py-4">
-							<div className="flex items-start gap-3">
-								<div className="shrink-0 w-14 h-14 bg-red-50 text-red-500 flex items-center justify-center rounded">
-									{i.risk_level === "high"
-										? "骗"
-										: i.risk_level === "medium"
-											? "警"
-											: ""}
-								</div>
-								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-2">
-										<span className="text-sm text-blue-600">被曝光人：</span>
-										<span className="font-medium truncate">{i.value}</span>
-										<Tag
-											color={
+
+				{(result.items || []).length === 0 && !loading ? (
+					<div className="text-center py-12">
+						<div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+							<svg
+								className="w-8 h-8 text-gray-400"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-label="无数据图标"
+							>
+								<title>无数据</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+								/>
+							</svg>
+						</div>
+						<p className="text-gray-500">暂无数据</p>
+					</div>
+				) : (
+					<div className="grid gap-4">
+						{(result.items || []).map((i) => (
+							<div
+								key={i._id}
+								role="button"
+								tabIndex={0}
+								onClick={() => router.push(`/blacklist/${i._id}`)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										router.push(`/blacklist/${i._id}`);
+									}
+								}}
+								className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:shadow-xl overflow-hidden border-0"
+							>
+								{/* 风险等级指示条 */}
+								<div
+									className={`absolute top-0 left-0 w-full h-1 ${
+										i.risk_level === "high"
+											? "bg-gradient-to-r from-red-500 to-red-600"
+											: i.risk_level === "medium"
+												? "bg-gradient-to-r from-orange-500 to-orange-600"
+												: "bg-gradient-to-r from-green-500 to-green-600"
+									}`}
+								></div>
+
+								<div className="p-6">
+									<div className="flex items-start gap-4">
+										{/* 风险等级图标 */}
+										<div
+											className={`shrink-0 w-14 h-14 flex items-center justify-center rounded-xl text-white font-bold text-sm shadow-lg ${
 												i.risk_level === "high"
-													? "error"
+													? "bg-gradient-to-br from-red-500 to-red-600"
 													: i.risk_level === "medium"
-														? "warning"
-														: "default"
-											}
+														? "bg-gradient-to-br from-orange-500 to-orange-600"
+														: "bg-gradient-to-br from-green-500 to-green-600"
+											}`}
 										>
-											{i.risk_level}
-										</Tag>
-									</div>
-									<div className="text-xs text-neutral-500 mt-1 truncate">
-										类型：{i.type} · 状态：{i.status} · 理由码：{i.reason_code}{" "}
-										· 来源：{i.source || "-"}
-									</div>
-									{i.reason && (
-										<div className="text-sm text-neutral-700 mt-2 line-clamp-2">
-											{i.reason}
+											{i.risk_level === "high"
+												? "⚠️"
+												: i.risk_level === "medium"
+													? "⚡"
+													: "✓"}
 										</div>
-									)}
-									<div className="flex items-center gap-4 text-xs text-neutral-400 mt-2">
-										<span>
-											更新时间：{new Date(i.updated_at).toLocaleString()}
-										</span>
-										<span>操作人：{i.operator}</span>
+
+										<div className="min-w-0 flex-1">
+											{/* 主要信息行 */}
+											<div className="flex items-center gap-3 mb-3">
+												<h4 className="!mb-0 text-xl font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+													{i.value}
+												</h4>
+												<div className="flex items-center gap-2">
+													<span
+														className={`px-3 py-1 rounded-full text-xs font-semibold ${
+															i.risk_level === "high"
+																? "bg-red-100 text-red-700"
+																: i.risk_level === "medium"
+																	? "bg-orange-100 text-orange-700"
+																	: "bg-green-100 text-green-700"
+														}`}
+													>
+														{i.risk_level === "high"
+															? "高风险"
+															: i.risk_level === "medium"
+																? "中风险"
+																: "低风险"}
+													</span>
+													<span
+														className={`px-3 py-1 rounded-full text-xs font-semibold ${
+															i.status === "published"
+																? "bg-green-100 text-green-700"
+																: i.status === "pending"
+																	? "bg-blue-100 text-blue-700"
+																	: i.status === "rejected"
+																		? "bg-red-100 text-red-700"
+																		: i.status === "retracted"
+																			? "bg-gray-100 text-gray-700"
+																			: "bg-yellow-100 text-yellow-700"
+														}`}
+													>
+														{i.status === "published"
+															? "✅ 已发布"
+															: i.status === "pending"
+																? "⏳ 待复核"
+																: i.status === "rejected"
+																	? "❌ 已退回"
+																	: i.status === "retracted"
+																		? "🔄 已撤销"
+																		: "📝 草稿"}
+													</span>
+												</div>
+											</div>
+
+											{/* 详细信息网格 */}
+											<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+												<div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-3 border-l-4 border-blue-400">
+													<div className="text-xs text-blue-600 font-medium mb-1">
+														类型
+													</div>
+													<div className="font-bold text-gray-900">
+														{i.type === "user"
+															? "👤 用户"
+															: i.type === "ip"
+																? "🌐 IP地址"
+																: i.type === "email"
+																	? "📧 邮箱"
+																	: i.type === "phone"
+																		? "📱 手机号"
+																		: "🌍 域名"}
+													</div>
+												</div>
+												<div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-3 border-l-4 border-purple-400">
+													<div className="text-xs text-purple-600 font-medium mb-1">
+														理由码
+													</div>
+													<div
+														className="font-bold text-gray-900 truncate"
+														title={getReasonCodeLabel(i.reason_code)}
+													>
+														{getReasonCodeLabel(i.reason_code)}
+													</div>
+												</div>
+												<div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-3 border-l-4 border-green-400">
+													<div className="text-xs text-green-600 font-medium mb-1">
+														来源
+													</div>
+													<div className="font-bold text-gray-900 truncate">
+														{getSourceLabel(i.source)}
+													</div>
+												</div>
+												<div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-3 border-l-4 border-orange-400">
+													<div className="text-xs text-orange-600 font-medium mb-1">
+														操作人
+													</div>
+													<div className="font-bold text-gray-900 truncate">
+														{i.operator}
+													</div>
+												</div>
+											</div>
+
+											{/* 举报理由 */}
+											{i.reason && (
+												<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-200/50">
+													<div className="text-xs text-blue-600 font-semibold mb-2 flex items-center gap-1">
+														💬 举报理由
+													</div>
+													<div className="text-sm text-blue-900 line-clamp-2 leading-relaxed">
+														{i.reason}
+													</div>
+												</div>
+											)}
+
+											{/* 底部信息 */}
+											<div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100/80">
+												<div className="flex items-center gap-2 text-xs text-gray-500">
+													<div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+													更新时间：
+													{new Date(i.updated_at).toLocaleString("zh-CN")}
+												</div>
+												<div className="text-xs text-blue-600 font-medium group-hover:text-blue-700 flex items-center gap-1">
+													查看详情
+													<svg
+														className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+														aria-label="箭头图标"
+													>
+														<title>箭头</title>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M9 5l7 7-7 7"
+														/>
+													</svg>
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					))}
-				</div>
-				<div className="mt-4 flex justify-center">
-					<Button
-						disabled={
-							loading || (result.items?.length || 0) >= (result.total || 0)
-						}
-						onClick={async () => {
-							setPage((p) => p + 1);
-							await load(false);
-						}}
-					>
-						加载更多
-					</Button>
-				</div>
-			</Card>
+						))}
+					</div>
+				)}
+
+				{/* 加载更多按钮 */}
+				{(result.items || []).length > 0 && (
+					<div className="mt-6 flex justify-center">
+						<Button
+							type="default"
+							size="large"
+							disabled={
+								loading || (result.items?.length || 0) >= (result.total || 0)
+							}
+							onClick={async () => {
+								setPage((p) => p + 1);
+								await load(false);
+							}}
+							className="px-8 py-2 h-auto rounded-lg border-2 border-blue-200 text-blue-600 hover:border-blue-400 hover:text-blue-700 font-medium"
+						>
+							{loading ? "加载中..." : "加载更多"}
+						</Button>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

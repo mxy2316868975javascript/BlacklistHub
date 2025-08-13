@@ -18,26 +18,22 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import useSWR from "swr";
+import {
+	type BlacklistItem,
+	REASON_CODE_OPTIONS,
+	RISK_LEVEL_OPTIONS,
+	SOURCE_OPTIONS,
+	TYPE_OPTIONS,
+} from "@/types/blacklist";
 import ReasonCodeHelp from "./_ReasonCodeHelp";
 import StatusActions from "./_StatusActions";
 
 import StatusTag from "./_StatusTag";
 import Timeline from "./_Timeline";
 
-type BlackItem = {
-	_id: string;
-	type: "user" | "ip" | "email" | "phone" | "domain";
-	value: string;
-	reason: string;
-	reason_code: string;
-	risk_level: "low" | "medium" | "high";
-	source?: string;
+// 使用共享的BlacklistItem类型，但添加本页面特有的字段
+type BlackItem = BlacklistItem & {
 	sources?: string[];
-	status: "draft" | "pending" | "published" | "rejected" | "retracted";
-	operator: string;
-	created_at: string;
-	updated_at: string;
-	expires_at?: string;
 	timeline?: { action: string; by: string; at: string; note?: string }[];
 };
 
@@ -133,15 +129,7 @@ export default function BlacklistDetailPage() {
 										label="类型"
 										rules={[{ required: true }]}
 									>
-										<Select
-											options={[
-												{ label: "用户", value: "user" },
-												{ label: "IP", value: "ip" },
-												{ label: "邮箱", value: "email" },
-												{ label: "手机号", value: "phone" },
-												{ label: "域名", value: "domain" },
-											]}
-										/>
+										<Select options={TYPE_OPTIONS} />
 									</Form.Item>
 								</Col>
 								<Col span={12}>
@@ -161,13 +149,7 @@ export default function BlacklistDetailPage() {
 										label="风险等级"
 										rules={[{ required: true }]}
 									>
-										<Select
-											options={[
-												{ label: "低", value: "low" },
-												{ label: "中", value: "medium" },
-												{ label: "高", value: "high" },
-											]}
-										/>
+										<Select options={RISK_LEVEL_OPTIONS} />
 									</Form.Item>
 								</Col>
 								<Col span={8}>
@@ -180,7 +162,16 @@ export default function BlacklistDetailPage() {
 										}
 										rules={[{ required: true }]}
 									>
-										<Input placeholder="例如：abuse.spam" />
+										<Select
+											placeholder="请选择理由码"
+											options={REASON_CODE_OPTIONS}
+											showSearch
+											filterOption={(input, option) =>
+												(option?.label ?? "")
+													.toLowerCase()
+													.includes(input.toLowerCase())
+											}
+										/>
 									</Form.Item>
 								</Col>
 								<Col span={8}>
@@ -197,7 +188,11 @@ export default function BlacklistDetailPage() {
 								<Input.TextArea rows={4} />
 							</Form.Item>
 							<Form.Item name="source" label="来源">
-								<Input />
+								<Select
+									placeholder="请选择来源"
+									allowClear
+									options={SOURCE_OPTIONS}
+								/>
 							</Form.Item>
 						</Form>
 					</Card>

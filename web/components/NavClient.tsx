@@ -57,7 +57,7 @@ export default function NavClient({ username = "", role = "" }: Props) {
 
 	return (
 		<header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-neutral-100">
-			<div className="max-w-screen-xl mx-auto h-14 flex items-center justify-between px-4">
+			<div className="max-w-screen-xl mx-auto h-14 flex items-center justify-between">
 				{/* Brand */}
 				<Link href="/" className="flex items-center gap-2">
 					<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold">

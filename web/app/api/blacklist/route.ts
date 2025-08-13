@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
 	const type = searchParams.get("type") || undefined;
 	const risk_level = searchParams.get("risk_level") || undefined;
 	const status = searchParams.get("status") || undefined;
+	const source = searchParams.get("source") || undefined;
+	const reason_code = searchParams.get("reason_code") || undefined;
 	const keyword = searchParams.get("keyword")?.toLowerCase() || undefined;
 	const start = searchParams.get("start") || undefined;
 	const end = searchParams.get("end") || undefined;
@@ -21,6 +23,8 @@ export async function GET(request: NextRequest) {
 	if (type) q.type = type;
 	if (risk_level) q.risk_level = risk_level;
 	if (status) q.status = status;
+	if (source) q.source = source;
+	if (reason_code) q.reason_code = reason_code;
 	if (start || end) {
 		const range: { $gte?: Date; $lte?: Date } = {};
 		if (start) range.$gte = new Date(start);

@@ -53,17 +53,10 @@ export default function SearchCard() {
 
 	const loadData = useCallback(
 		async (pageNum: number, reset = false) => {
-			console.log("🔄 加载数据:", { pageNum, reset, form });
 			setLoading(true);
 			try {
 				const res = await axios.get("/api/blacklist", {
 					params: { ...form, page: pageNum, pageSize: 10 },
-				});
-				console.log("📊 API响应:", {
-					page: pageNum,
-					total: res.data?.total,
-					itemsCount: res.data?.items?.length,
-					reset,
 				});
 				const total = res.data?.total || 0;
 				const newItemsCount = res.data?.items?.length || 0;
@@ -78,13 +71,6 @@ export default function SearchCard() {
 							...(prev.items || []),
 							...(res.data?.items || []),
 						];
-						console.log("📝 合并结果:", {
-							previousCount: prev.items?.length || 0,
-							newCount: res.data?.items?.length || 0,
-							totalCount: newItems.length,
-							total,
-							hasMoreData: newItems.length < total,
-						});
 						return {
 							total: res.data?.total || prev.total,
 							items: newItems,
@@ -95,7 +81,6 @@ export default function SearchCard() {
 					setHasMore(pageNum * 10 < total);
 				}
 			} catch (e) {
-				console.error("❌ 加载失败:", e);
 				message.error(`查询失败 ${e}`);
 			} finally {
 				setLoading(false);
@@ -270,19 +255,14 @@ export default function SearchCard() {
 										router.push(`/blacklist/${i._id}`);
 									}
 								}}
-								className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:shadow-xl overflow-hidden border-0"
+								className={`group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:shadow-xl overflow-hidden border-t-4 ${
+									i.risk_level === "high"
+										? "border-t-red-500"
+										: i.risk_level === "medium"
+											? "border-t-orange-500"
+											: "border-t-green-500"
+								}`}
 							>
-								{/* 风险等级指示条 */}
-								<div
-									className={`absolute top-0 left-0 w-full h-1 ${
-										i.risk_level === "high"
-											? "bg-gradient-to-r from-red-500 to-red-600"
-											: i.risk_level === "medium"
-												? "bg-gradient-to-r from-orange-500 to-orange-600"
-												: "bg-gradient-to-r from-green-500 to-green-600"
-									}`}
-								></div>
-
 								<div className="p-6">
 									<div className="flex items-start gap-4">
 										{/* 风险等级图标 */}
@@ -461,14 +441,6 @@ export default function SearchCard() {
 								disabled={loading || !hasMore}
 								onClick={async () => {
 									const nextPage = page + 1;
-									console.log("🔄 点击加载更多:", {
-										currentPage: page,
-										nextPage,
-										hasMore,
-										loading,
-										currentItemsCount: result.items?.length || 0,
-										total: result.total || 0,
-									});
 									await loadData(nextPage, false);
 								}}
 								className="px-8 py-2 h-auto rounded-lg border-2 border-blue-200 text-blue-600 hover:border-blue-400 hover:text-blue-700 font-medium"

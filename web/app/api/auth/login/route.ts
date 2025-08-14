@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import type { UserRole } from "@/types/user";
 
 export const runtime = "nodejs";
 
@@ -22,11 +23,14 @@ export async function POST(req: NextRequest) {
 	const token = signToken({
 		uid: user._id,
 		username: user.username,
-		role: user.role || "reporter",
+		role: (user.role as UserRole) || "reporter",
 	});
 	const res = NextResponse.json({
 		token,
-		user: { username: user.username, role: user.role || "reporter" },
+		user: {
+			username: user.username,
+			role: (user.role as UserRole) || "reporter",
+		},
 	});
 	res.cookies.set("token", token, {
 		httpOnly: true,

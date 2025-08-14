@@ -120,31 +120,17 @@ export default function BlacklistDetailPage() {
 							form={form}
 							layout="vertical"
 							onFinish={async (values) => {
-								console.log("🔍 表单提交 - values:", values);
-
 								// 确保地区字段始终存在，即使为空也要传递（与新增页面保持一致）
 								const submitData = {
 									...values,
 									region: values.region || null,
 								};
-								console.log("📤 最终提交数据:", submitData);
 
-								const response = await axios.put(
-									`/api/blacklist/${item._id}`,
-									submitData,
-								);
-								console.log("✅ PUT响应:", response.data);
+								await axios.put(`/api/blacklist/${item._id}`, submitData);
 
 								// 强制刷新数据
 								await mutate();
 								message.success("已保存");
-							}}
-							onValuesChange={(changedValues, allValues) => {
-								console.log("📝 表单值变化:", changedValues);
-								if (Object.hasOwn(changedValues, "region")) {
-									console.log("🎯 地区字段变化:", changedValues.region);
-								}
-								console.log("📋 当前所有值:", allValues);
 							}}
 						>
 							<Row gutter={12}>

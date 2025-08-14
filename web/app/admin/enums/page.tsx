@@ -1,9 +1,9 @@
 "use client";
 
-import { Button, Card, Tabs, Table, Tag, Space, message } from "antd";
-import { useReasonCodes, useSources, useRegions } from "@/hooks/useEnums";
-import { useState } from "react";
+import { Button, Card, message, Space, Table, Tabs, Tag } from "antd";
 import axios from "axios";
+import { useState } from "react";
+import { useReasonCodes, useRegions, useSources } from "@/hooks/useEnums";
 
 export default function EnumsManagePage() {
 	const { reasonCodes, isLoading: reasonCodesLoading } = useReasonCodes();
@@ -20,8 +20,7 @@ export default function EnumsManagePage() {
 			// 刷新数据
 			window.location.reload();
 		} catch (error) {
-			console.error("Error initializing data:", error);
-			message.error("枚举数据初始化失败");
+			message.error(`枚举数据初始化失败 ${error}`);
 		} finally {
 			setLoading(false);
 		}
@@ -45,14 +44,21 @@ export default function EnumsManagePage() {
 			key: "category",
 			width: 100,
 			render: (category: string) => (
-				<Tag color={
-					category === "fraud" ? "red" :
-					category === "abuse" ? "orange" :
-					category === "violation" ? "volcano" :
-					category === "security" ? "purple" :
-					category === "quality" ? "blue" :
-					"default"
-				}>
+				<Tag
+					color={
+						category === "fraud"
+							? "red"
+							: category === "abuse"
+								? "orange"
+								: category === "violation"
+									? "volcano"
+									: category === "security"
+										? "purple"
+										: category === "quality"
+											? "blue"
+											: "default"
+					}
+				>
 					{category}
 				</Tag>
 			),
@@ -63,9 +69,7 @@ export default function EnumsManagePage() {
 			key: "is_active",
 			width: 80,
 			render: (active: boolean) => (
-				<Tag color={active ? "green" : "red"}>
-					{active ? "启用" : "禁用"}
-				</Tag>
+				<Tag color={active ? "green" : "red"}>{active ? "启用" : "禁用"}</Tag>
 			),
 		},
 		{
@@ -99,9 +103,7 @@ export default function EnumsManagePage() {
 			key: "is_active",
 			width: 80,
 			render: (active: boolean) => (
-				<Tag color={active ? "green" : "red"}>
-					{active ? "启用" : "禁用"}
-				</Tag>
+				<Tag color={active ? "green" : "red"}>{active ? "启用" : "禁用"}</Tag>
 			),
 		},
 		{
@@ -137,14 +139,20 @@ export default function EnumsManagePage() {
 			key: "level",
 			width: 100,
 			render: (level: string) => (
-				<Tag color={
-					level === "municipality" ? "gold" :
-					level === "prefecture" ? "blue" :
-					"green"
-				}>
-					{level === "municipality" ? "直辖市" :
-					 level === "prefecture" ? "地级市" :
-					 "县级市"}
+				<Tag
+					color={
+						level === "municipality"
+							? "gold"
+							: level === "prefecture"
+								? "blue"
+								: "green"
+					}
+				>
+					{level === "municipality"
+						? "直辖市"
+						: level === "prefecture"
+							? "地级市"
+							: "县级市"}
 				</Tag>
 			),
 		},
@@ -154,9 +162,7 @@ export default function EnumsManagePage() {
 			key: "is_active",
 			width: 80,
 			render: (active: boolean) => (
-				<Tag color={active ? "green" : "red"}>
-					{active ? "启用" : "禁用"}
-				</Tag>
+				<Tag color={active ? "green" : "red"}>{active ? "启用" : "禁用"}</Tag>
 			),
 		},
 		{
@@ -223,11 +229,7 @@ export default function EnumsManagePage() {
 						</p>
 					</div>
 					<Space>
-						<Button
-							type="primary"
-							loading={loading}
-							onClick={initializeData}
-						>
+						<Button type="primary" loading={loading} onClick={initializeData}>
 							初始化数据
 						</Button>
 					</Space>

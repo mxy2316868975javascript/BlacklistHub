@@ -1,10 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
+import type { UserInfo } from "@/types/user";
+import { PERMISSIONS } from "@/types/user";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
+	// 权限验证：只有管理员和超级管理员可以导出数据
+	const authHeader = request.headers.get("authorization");
+	const token = authHeader?.startsWith("Bearer ")
+		? authHeader.slice(7)
+		: request.cookies.get("token")?.value;
+	const me = verifyToken<UserInfo>(token);
+
+	if (!me || !PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(me.role)) {
+		return NextResponse.json(
+			{ message: "权限不足：需要管理员权限" },
+			{ status: 403 },
+		);
+	}
+
 	const { searchParams } = new URL(request.url);
 	const type = searchParams.get("type") || undefined;
 	const risk_level = searchParams.get("risk_level") || undefined;

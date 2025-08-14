@@ -68,7 +68,7 @@ export default function BlacklistPage() {
 	React.useEffect(() => {
 		(async () => {
 			try {
-				const res = await axios.get("/api/me");
+				const res = await axios.get("/api/userinfo");
 				setRole(res.data?.user?.role || "reporter");
 			} catch {
 				setRole("reporter");

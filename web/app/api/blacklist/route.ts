@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
+import type { UserInfo } from "@/types/user";
 
 export const runtime = "nodejs";
 
@@ -123,9 +124,7 @@ export async function POST(request: NextRequest) {
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.slice(7)
 		: request.cookies.get("token")?.value;
-	const me = verifyToken<{ uid: string; username: string; role?: string }>(
-		token,
-	);
+	const me = verifyToken<UserInfo>(token);
 	if (!me)
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 

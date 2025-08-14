@@ -3,6 +3,8 @@ import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
 import User from "@/models/User";
+import type { UserInfo } from "@/types/user";
+import { PERMISSIONS } from "@/types/user";
 
 export const runtime = "nodejs";
 
@@ -11,10 +13,8 @@ export async function GET(request: NextRequest) {
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.slice(7)
 		: request.cookies.get("token")?.value;
-	const me = verifyToken<{ uid: string; username: string; role?: string }>(
-		token,
-	);
-	if (!me || (me.role || "reporter") !== "admin")
+	const user = verifyToken<UserInfo>(token);
+	if (!user || !PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(user.role))
 		return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
 	const { searchParams } = new URL(request.url);

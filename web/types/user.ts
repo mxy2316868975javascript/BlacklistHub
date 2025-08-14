@@ -1,0 +1,237 @@
+/**
+ * @fileoverview 用户相关类型定义
+ *
+ * @description
+ * 本文件包含黑名单系统中所有用户相关的类型定义和常量。
+ *
+ * 系统采用三级权限模型：
+ * 1. Reporter（举报者）- 提交黑名单举报
+ * 2. Reviewer（审核员）- 审核举报内容
+ * 3. Admin（管理员）- 系统管理和用户管理
+ *
+ * 工作流程：Reporter 提交 → Reviewer 审核 → Admin 发布
+ *
+ * @author BlacklistHub Team
+ * @since 1.0.0
+ */
+
+/**
+ * 用户角色类型定义
+ *
+ * @description 定义系统中的四种用户角色，按权限级别从低到高排列
+ *
+ * - `reporter`: 举报者 - 负责提交黑名单举报，录入违规信息
+ * - `reviewer`: 审核员 - 负责审核举报内容，验证信息真实性
+ * - `admin`: 管理员 - 负责用户管理和基础系统维护
+ * - `super_admin`: 超级管理员 - 拥有系统级控制权限，不可被删除，可管理所有角色权限
+ *
+ * @example
+ * ```typescript
+ * const userRole: UserRole = "reporter";
+ *
+ * // 权限检查示例
+ * function canDeleteUser(role: UserRole): boolean {
+ *   return ["admin", "super_admin"].includes(role);
+ * }
+ *
+ * function canDeleteAdmin(role: UserRole): boolean {
+ *   return role === "super_admin";
+ * }
+ * ```
+ */
+export type UserRole = "reporter" | "reviewer" | "admin" | "super_admin";
+
+/**
+ * 用户认证信息类型
+ *
+ * @description 用于JWT token验证和用户身份识别的基本信息
+ *
+ * @property uid - 用户唯一标识符，对应数据库中的 _id
+ * @property username - 用户名，用于登录和显示
+ * @property role - 用户角色，决定用户的权限级别
+ *
+ * @example
+ * ```typescript
+ * const userInfo: UserInfo = {
+ *   uid: "507f1f77bcf86cd799439011",
+ *   username: "john_doe",
+ *   role: "reporter"
+ * };
+ * ```
+ */
+export type UserInfo = {
+	uid: string;
+	username: string;
+	role: UserRole;
+};
+
+/**
+ * 完整用户信息类型
+ *
+ * @description 包含用户完整信息的类型，主要用于用户列表和管理功能
+ *
+ * @property _id - 数据库中的用户ID，MongoDB ObjectId 字符串格式
+ * @property username - 用户名
+ * @property role - 用户角色
+ * @property stats - 用户统计信息（可选）
+ * @property stats.total - 用户总共提交的黑名单条目数量
+ * @property stats.published - 用户已发布的黑名单条目数量
+ *
+ * @example
+ * ```typescript
+ * const user: User = {
+ *   _id: "507f1f77bcf86cd799439011",
+ *   username: "john_doe",
+ *   role: "reporter",
+ *   stats: {
+ *     total: 25,
+ *     published: 20
+ *   }
+ * };
+ * ```
+ */
+export type User = {
+	_id: string;
+	username: string;
+	role: UserRole;
+	stats?: {
+		total: number;
+		published: number;
+	};
+};
+
+/**
+ * 用户角色选项常量
+ *
+ * @description 用于前端下拉选择器和表单组件的角色选项配置
+ *
+ * 包含四种角色的显示标签和对应值：
+ * - Reporter: 举报者，负责提交黑名单举报
+ * - Reviewer: 审核员，负责审核举报内容
+ * - Admin: 管理员，负责用户管理和基础系统维护
+ * - Super Admin: 超级管理员，拥有系统级控制权限
+ *
+ * @example
+ * ```typescript
+ * // 在 Antd Select 组件中使用
+ * <Select options={USER_ROLE_OPTIONS} />
+ *
+ * // 在 Dropdown 菜单中使用
+ * const menuItems = USER_ROLE_OPTIONS.map(option => ({
+ *   key: option.value,
+ *   label: option.label
+ * }));
+ * ```
+ */
+export const USER_ROLE_OPTIONS = [
+	{ label: "Reporter", value: "reporter" },
+	{ label: "Reviewer", value: "reviewer" },
+	{ label: "Admin", value: "admin" },
+	{ label: "Super Admin", value: "super_admin" },
+];
+
+/**
+ * 权限检查常量
+ *
+ * @description 定义各种操作的权限检查函数
+ *
+ * 核心权限设计：
+ * 1. 系统级控制：super_admin 拥有所有系统功能的最高权限
+ * 2. 不可删除：其他用户无法删除超级管理员账户
+ * 3. 权限管理：super_admin 可以管理所有其他角色的权限
+ *
+ * @example
+ * ```typescript
+ * // 检查是否可以删除用户
+ * if (PERMISSIONS.CAN_DELETE_USERS(currentUserRole)) {
+ *   // 执行删除操作
+ * }
+ *
+ * // 检查是否可以删除管理员
+ * if (PERMISSIONS.CAN_DELETE_ADMINS(currentUserRole)) {
+ *   // 执行删除管理员操作
+ * }
+ * ```
+ */
+export const PERMISSIONS = {
+	/**
+	 * 是否可以删除普通用户
+	 * @param role 当前用户角色
+	 * @returns 是否有权限
+	 */
+	CAN_DELETE_USERS: (role: UserRole): boolean =>
+		["admin", "super_admin"].includes(role),
+
+	/**
+	 * 是否可以删除管理员用户
+	 * @param role 当前用户角色
+	 * @returns 是否有权限
+	 */
+	CAN_DELETE_ADMINS: (role: UserRole): boolean => role === "super_admin",
+
+	/**
+	 * 是否可以删除超级管理员（始终返回false，超级管理员不可删除）
+	 * @param _role 当前用户角色（未使用，因为超级管理员不可删除）
+	 * @returns 始终返回false
+	 */
+	CAN_DELETE_SUPER_ADMINS: (_role: UserRole): boolean => false,
+
+	/**
+	 * 是否可以修改用户角色
+	 * @param role 当前用户角色
+	 * @returns 是否有权限
+	 */
+	CAN_CHANGE_USER_ROLES: (role: UserRole): boolean =>
+		["admin", "super_admin"].includes(role),
+
+	/**
+	 * 是否可以修改管理员角色
+	 * @param role 当前用户角色
+	 * @returns 是否有权限
+	 */
+	CAN_CHANGE_ADMIN_ROLES: (role: UserRole): boolean => role === "super_admin",
+
+	/**
+	 * 是否可以访问用户管理页面
+	 * @param role 当前用户角色
+	 * @returns 是否有权限
+	 */
+	CAN_ACCESS_USER_MANAGEMENT: (role: UserRole): boolean =>
+		["admin", "super_admin"].includes(role),
+
+	/**
+	 * 检查是否可以删除指定角色的用户
+	 * @param currentRole 当前用户角色
+	 * @param targetRole 目标用户角色
+	 * @returns 是否有权限删除
+	 */
+	CAN_DELETE_USER_BY_ROLE: (
+		currentRole: UserRole,
+		targetRole: UserRole,
+	): boolean => {
+		// 超级管理员不可被删除
+		if (targetRole === "super_admin") return false;
+		// 只有超级管理员可以删除管理员
+		if (targetRole === "admin") return currentRole === "super_admin";
+		// 管理员和超级管理员可以删除普通用户
+		return ["admin", "super_admin"].includes(currentRole);
+	},
+
+	/**
+	 * 检查是否可以修改指定角色用户的权限
+	 * @param currentRole 当前用户角色
+	 * @param targetRole 目标用户角色
+	 * @returns 是否有权限修改
+	 */
+	CAN_CHANGE_USER_ROLE_BY_ROLE: (
+		currentRole: UserRole,
+		targetRole: UserRole,
+	): boolean => {
+		// 只有超级管理员可以修改管理员和超级管理员的角色
+		if (["admin", "super_admin"].includes(targetRole)) {
+			return currentRole === "super_admin";
+		}
+		// 管理员和超级管理员可以修改普通用户角色
+		return ["admin", "super_admin"].includes(currentRole);
+	},
+} as const;

@@ -33,13 +33,6 @@ export async function middleware(req: NextRequest) {
 
 	try {
 		const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
-		// debug logs
-		console.log(
-			"[middleware] verifying token, hasSecret=",
-			Boolean(process.env.JWT_SECRET),
-			"tokenPrefix=",
-			token.slice(0, 10),
-		);
 		await jwtVerify(token, secret);
 		return NextResponse.next();
 	} catch (e) {

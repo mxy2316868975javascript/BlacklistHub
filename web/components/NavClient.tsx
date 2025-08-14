@@ -4,27 +4,41 @@ import axios from "axios";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import type { UserInfo, UserRole } from "@/types/user";
+import { PERMISSIONS } from "@/types/user";
 
 type Props = {
 	username?: string;
-	role?: "reporter" | "reviewer" | "admin" | "";
+	role?: UserRole | "";
+	userInfo?: UserInfo; // 从 /api/userinfo 获取的用户信息
 };
 
-export default function NavClient({ username = "", role = "" }: Props) {
+export default function NavClient({
+	username = "",
+	role = "",
+	userInfo,
+}: Props) {
 	const pathname = usePathname();
 	const [name, setName] = useState(username);
 	const [userRole, setUserRole] = useState(role);
-	useEffect(() => {
-		setName(username || "");
-		setUserRole(role || "");
-	}, [username, role]);
 
 	useEffect(() => {
-		// 客户端兜底：若没有服务端注入的 props，则尝试 /api/me 获取，避免 SSR/CSR 不一致
+		// 优先使用 userInfo，然后是 props，最后是默认值
+		if (userInfo) {
+			setName(userInfo.username);
+			setUserRole(userInfo.role);
+		} else {
+			setName(username || "");
+			setUserRole(role || "");
+		}
+	}, [username, role, userInfo]);
+
+	useEffect(() => {
+		// 客户端兜底：若没有服务端注入的 props，则尝试 /api/userinfo 获取，避免 SSR/CSR 不一致
 		if (!name) {
 			(async () => {
 				try {
-					const res = await axios.get("/api/me");
+					const res = await axios.get("/api/userinfo");
 					setName(res.data?.user?.username || "");
 					setUserRole(res.data?.user?.role || "");
 				} catch {}
@@ -106,20 +120,22 @@ export default function NavClient({ username = "", role = "" }: Props) {
 					>
 						排名
 					</Link>
-					{role === "admin" && (
-						<Link href="/users" className={linkCls("users")} prefetch={false}>
-							用户列表
-						</Link>
-					)}
-					{role === "admin" && (
-						<Link
-							href="/admin/users"
-							className={linkCls("admin-users")}
-							prefetch={false}
-						>
-							角色管理
-						</Link>
-					)}
+					{userRole &&
+						PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(userRole as UserRole) && (
+							<Link href="/users" className={linkCls("users")} prefetch={false}>
+								用户列表
+							</Link>
+						)}
+					{userRole &&
+						PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(userRole as UserRole) && (
+							<Link
+								href="/admin/users"
+								className={linkCls("admin-users")}
+								prefetch={false}
+							>
+								角色管理
+							</Link>
+						)}
 				</nav>
 
 				{/* Actions */}
@@ -154,10 +170,8 @@ export default function NavClient({ username = "", role = "" }: Props) {
 						}}
 					>
 						<div className="flex items-center gap-2 cursor-pointer select-none">
-							<Avatar size="small">
-								{username?.[0]?.toUpperCase() || "U"}
-							</Avatar>
-							<span className="text-neutral-700">{username || "用户"}</span>
+							<Avatar size="small">{name?.[0]?.toUpperCase() || "U"}</Avatar>
+							<span className="text-neutral-700">{name || "用户"}</span>
 						</div>
 					</Dropdown>
 				</div>

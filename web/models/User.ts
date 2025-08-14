@@ -1,5 +1,6 @@
 import type mongoose from "mongoose";
 import { type InferSchemaType, model, models, Schema } from "mongoose";
+import type { UserRole } from "@/types/user";
 
 const UserSchema = new Schema(
 	{
@@ -7,8 +8,8 @@ const UserSchema = new Schema(
 		password_hash: { type: String, required: true },
 		role: {
 			type: String,
-			enum: ["reporter", "reviewer", "admin"],
-			default: "reporter",
+			enum: ["reporter", "reviewer", "admin", "super_admin"] as const,
+			default: "reporter" as UserRole,
 			index: true,
 		},
 	},

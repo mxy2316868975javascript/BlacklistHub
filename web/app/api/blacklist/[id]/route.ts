@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
+import type { UserInfo, UserRole } from "@/types/user";
 
 // 类型定义
 interface BlacklistDocument {
@@ -64,9 +65,7 @@ export async function PUT(
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.slice(7)
 		: /(?:^|; )token=([^;]+)/.exec(cookie || "")?.[1];
-	const me = verifyToken<{ uid: string; username: string; role?: string }>(
-		token,
-	);
+	const me = verifyToken<UserInfo>(token);
 	if (!me)
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
@@ -95,8 +94,12 @@ export async function PUT(
 			retracted: [],
 		};
 
-		// Admin可以直接发布草稿
-		if (userRole === "admin" && from === "draft" && to === "published") {
+		// Admin和Super Admin可以直接发布草稿
+		if (
+			(userRole === "admin" || userRole === "super_admin") &&
+			from === "draft" &&
+			to === "published"
+		) {
 			return true;
 		}
 
@@ -107,9 +110,13 @@ export async function PUT(
 	const role = (me.role || "reporter").toLowerCase();
 
 	// 检查已发布记录的修改权限
-	if (doc.status === "published" && role !== "admin") {
+	if (
+		doc.status === "published" &&
+		role !== "admin" &&
+		role !== "super_admin"
+	) {
 		return NextResponse.json(
-			{ message: "权限不足：只有Admin可以修改已发布的记录" },
+			{ message: "权限不足：只有Admin或Super Admin可以修改已发布的记录" },
 			{ status: 403 },
 		);
 	}
@@ -125,9 +132,9 @@ export async function PUT(
 		status === "rejected" ||
 		status === "retracted"
 	) {
-		if (!(role === "reviewer" || role === "admin")) {
+		if (!(role === "reviewer" || role === "admin" || role === "super_admin")) {
 			return NextResponse.json(
-				{ message: "权限不足：需要 Reviewer 或 Admin" },
+				{ message: "权限不足：需要 Reviewer、Admin 或 Super Admin" },
 				{ status: 403 },
 			);
 		}
@@ -193,9 +200,7 @@ export async function DELETE(
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.slice(7)
 		: /(?:^|; )token=([^;]+)/.exec(cookie || "")?.[1];
-	const me = verifyToken<{ uid: string; username: string; role?: string }>(
-		token,
-	);
+	const me = verifyToken<UserInfo>(token);
 	if (!me)
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 	const { id } = await params;

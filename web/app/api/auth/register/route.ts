@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
 	if (exists)
 		return NextResponse.json({ message: "用户名已存在" }, { status: 400 });
 
-	const password_hash = await bcrypt.hash(password, 10);
+	const passwordHash = await bcrypt.hash(password, 10);
 	await User.create({
 		username,
-		password_hash,
+		password_hash: passwordHash,
 		role: (role as UserRole) ?? "reporter",
 	});
 	return NextResponse.json({ ok: true });

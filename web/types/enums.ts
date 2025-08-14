@@ -17,6 +17,7 @@
  * 用户角色枚举
  */
 export enum UserRole {
+	GUEST = "guest",
 	REPORTER = "reporter",
 	REVIEWER = "reviewer",
 	ADMIN = "admin",
@@ -27,6 +28,7 @@ export enum UserRole {
  * 用户角色显示标签映射（中文）
  */
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
+	[UserRole.GUEST]: "游客",
 	[UserRole.REPORTER]: "举报者",
 	[UserRole.REVIEWER]: "审核员",
 	[UserRole.ADMIN]: "管理员",
@@ -46,28 +48,22 @@ export const USER_ROLE_OPTIONS = Object.values(UserRole).map((role) => ({
 // ================================
 
 /**
- * 黑名单类型枚举
+ * 失信主体类型枚举
  */
 export enum BlacklistType {
-	USER = "user",
-	IP = "ip",
-	EMAIL = "email",
-	PHONE = "phone",
+	PERSON = "person",
 	COMPANY = "company",
-	DOMAIN = "domain",
+	ORGANIZATION = "organization",
 	OTHER = "other",
 }
 
 /**
- * 黑名单类型显示标签映射（中文）
+ * 失信主体类型显示标签映射（中文）
  */
 export const BLACKLIST_TYPE_LABELS: Record<BlacklistType, string> = {
-	[BlacklistType.USER]: "用户账号",
-	[BlacklistType.IP]: "IP地址",
-	[BlacklistType.EMAIL]: "邮箱地址",
-	[BlacklistType.PHONE]: "手机号码",
-	[BlacklistType.COMPANY]: "公司企业",
-	[BlacklistType.DOMAIN]: "域名网址",
+	[BlacklistType.PERSON]: "个人",
+	[BlacklistType.COMPANY]: "企业",
+	[BlacklistType.ORGANIZATION]: "组织",
 	[BlacklistType.OTHER]: "其他类型",
 } as const;
 
@@ -338,6 +334,12 @@ export const REASON_CODE_OPTIONS = Object.values(ReasonCode).map((code) => ({
  * 权限操作枚举
  */
 export enum Permission {
+	// 游客专用权限
+	VIEW_PUBLIC_BLACKLIST = "view_public_blacklist",
+	SEARCH_PUBLIC_DATA = "search_public_data",
+	VIEW_PUBLIC_STATS = "view_public_stats",
+	VIEW_HELP_DOCS = "view_help_docs",
+
 	// 用户管理权限
 	VIEW_USERS = "view_users",
 	CREATE_USERS = "create_users",
@@ -362,6 +364,12 @@ export enum Permission {
  * 角色权限映射
  */
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+	[UserRole.GUEST]: [
+		Permission.VIEW_PUBLIC_BLACKLIST,
+		Permission.SEARCH_PUBLIC_DATA,
+		Permission.VIEW_PUBLIC_STATS,
+		Permission.VIEW_HELP_DOCS,
+	],
 	[UserRole.REPORTER]: [
 		Permission.VIEW_BLACKLIST,
 		Permission.CREATE_BLACKLIST,

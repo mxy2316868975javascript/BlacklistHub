@@ -13,7 +13,7 @@ import {
 } from "antd";
 import axios from "axios";
 import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 import type { User } from "@/types/user";
 import { PERMISSIONS, USER_ROLE_OPTIONS } from "@/types/user";
 
@@ -27,13 +27,13 @@ export default function UsersPage() {
 		page: number;
 		pageSize: number;
 	}>({ page: 1, pageSize: 10 });
-	const { data, isLoading, mutate } = useSWR(
+	const { data, isLoading, mutate } = useSwr(
 		["/api/users", query],
 		([url, p]) => fetcher(url, p),
 	);
 
 	// 获取当前用户信息
-	const { data: currentUser } = useSWR("/api/userinfo", fetcher);
+	const { data: currentUser } = useSwr("/api/userinfo", fetcher);
 	const currentUserRole = currentUser?.user?.role;
 	const currentUserId = currentUser?.user?.uid;
 	const canAccessUserManagement =
@@ -106,9 +106,9 @@ export default function UsersPage() {
 		<div className="p-6 space-y-4">
 			<Card>
 				<div className="flex justify-between items-center">
-					<Space wrap>
+					<Space wrap={true}>
 						<Input
-							allowClear
+							allowClear={true}
 							style={{ width: 220 }}
 							placeholder="搜索用户名"
 							onChange={(e) =>
@@ -116,7 +116,7 @@ export default function UsersPage() {
 							}
 						/>
 						<Select
-							allowClear
+							allowClear={true}
 							placeholder="角色"
 							style={{ width: 160 }}
 							onChange={(v) => setQuery((q) => ({ ...q, role: v, page: 1 }))}
@@ -131,7 +131,7 @@ export default function UsersPage() {
 								已选择 {selectedRowKeys.length} 个用户
 							</span>
 							<Button
-								danger
+								danger={true}
 								loading={batchDeleteLoading}
 								onClick={confirmBatchDelete}
 								icon={
@@ -259,7 +259,7 @@ export default function UsersPage() {
 								return canDelete ? (
 									<Button
 										type="link"
-										danger
+										danger={true}
 										size="small"
 										onClick={() => confirmDelete(record._id, record.username)}
 									>

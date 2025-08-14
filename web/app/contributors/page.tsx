@@ -2,9 +2,22 @@
 import { Card, Input, Space, Table, Tag } from "antd";
 import axios from "axios";
 import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 
-const fetcher = (url: string, params?: any) =>
+interface Contributor {
+	username: string;
+	role: string;
+	total: number;
+	published: number;
+}
+
+interface QueryParams {
+	keyword?: string;
+	page: number;
+	pageSize: number;
+}
+
+const fetcher = (url: string, params?: QueryParams) =>
 	axios.get(url, { params }).then((r) => r.data);
 
 export default function ContributorsPage() {
@@ -13,16 +26,16 @@ export default function ContributorsPage() {
 		page: number;
 		pageSize: number;
 	}>({ page: 1, pageSize: 10 });
-	const { data, isLoading } = useSWR(["/api/contributors", query], ([url, p]) =>
+	const { data, isLoading } = useSwr(["/api/contributors", query], ([url, p]) =>
 		fetcher(url, p),
 	);
 
 	return (
 		<div className="p-6 space-y-4">
 			<Card>
-				<Space wrap>
+				<Space wrap={true}>
 					<Input
-						allowClear
+						allowClear={true}
 						style={{ width: 220 }}
 						placeholder="搜索贡献者用户名"
 						onChange={(e) =>
@@ -34,7 +47,7 @@ export default function ContributorsPage() {
 
 			<Card>
 				<Table
-					rowKey={(r) => r.username}
+					rowKey={(r: Contributor) => r.username}
 					loading={isLoading}
 					dataSource={data?.items || []}
 					columns={[

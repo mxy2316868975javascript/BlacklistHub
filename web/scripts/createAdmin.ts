@@ -14,22 +14,22 @@ async function createAdmin() {
 		const existingAdmin = await User.findOne({ username: adminUsername });
 		if (existingAdmin) {
 			// 重新生成密码哈希并更新用户
-			const password_hash = await bcrypt.hash(adminPassword, 10);
+			const passwordHash = await bcrypt.hash(adminPassword, 10);
 			await User.updateOne(
 				{ username: adminUsername },
 				{
 					role: "admin" as UserRole,
-					password_hash: password_hash,
+					password_hash: passwordHash,
 				},
 			);
 			return;
 		}
 
 		// 创建admin用户
-		const password_hash = await bcrypt.hash(adminPassword, 10);
+		const passwordHash = await bcrypt.hash(adminPassword, 10);
 		const adminUser = await User.create({
 			username: adminUsername,
-			password_hash,
+			password_hash: passwordHash,
 			role: "admin" as UserRole,
 		});
 

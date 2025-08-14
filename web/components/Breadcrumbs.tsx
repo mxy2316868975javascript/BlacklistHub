@@ -4,7 +4,6 @@ import type { MenuProps } from "antd";
 import { Breadcrumb, Dropdown } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
 
 const labelMap: Record<string, string> = {
 	dashboard: "仪表盘",

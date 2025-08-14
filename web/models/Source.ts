@@ -51,5 +51,4 @@ export type Source = InferSchemaType<typeof SourceSchema> & {
 	_id: string;
 };
 
-export default mongoose.models.Source ||
-	mongoose.model("Source", SourceSchema);
+export default mongoose.models.Source || mongoose.model("Source", SourceSchema);

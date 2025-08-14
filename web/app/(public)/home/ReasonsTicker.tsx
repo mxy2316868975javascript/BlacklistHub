@@ -1,12 +1,11 @@
 "use client";
 import axios from "axios";
-import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 export default function ReasonsTicker() {
-	const { data } = useSWR("/api/rankings", fetcher);
+	const { data } = useSwr("/api/rankings", fetcher);
 	const reasons = data?.topReasonCodes || [];
 	return (
 		<div className="h-8 overflow-hidden text-sm text-neutral-600">
@@ -17,7 +16,7 @@ export default function ReasonsTicker() {
 					</div>
 				))}
 			</div>
-			<style jsx>{`
+			<style jsx={true}>{`
         @keyframes ticker { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
       `}</style>
 		</div>

@@ -1,12 +1,12 @@
 "use client";
 import { Card, Col, Row, Statistic } from "antd";
 import axios from "axios";
-import useSWR from "swr";
+import useSwr from "swr";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 export default function StatsStrip() {
-	const { data } = useSWR("/api/stats", fetcher);
+	const { data } = useSwr("/api/stats", fetcher);
 	return (
 		<Row gutter={[16, 16]}>
 			<Col span={8}>

@@ -145,7 +145,7 @@ export async function DELETE(
 			return NextResponse.json({ message: "记录不存在" }, { status: 404 });
 		}
 
-		const index = parseInt(evidenceIndex);
+		const index = Number.parseInt(evidenceIndex);
 		if (index < 0 || index >= (blacklist.evidence?.length || 0)) {
 			return NextResponse.json({ message: "证据索引无效" }, { status: 400 });
 		}

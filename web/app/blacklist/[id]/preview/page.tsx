@@ -41,7 +41,7 @@ import {
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import {
 	type BlacklistItem,
@@ -95,7 +95,7 @@ export default function BlacklistPreviewPage() {
 		fetchUserInfo();
 	}, []);
 
-	const { data, error } = useSWR(
+	const { data, error } = useSwr(
 		isAuthorized ? `/api/blacklist/${params.id}` : null,
 		fetcher,
 	);
@@ -138,7 +138,7 @@ export default function BlacklistPreviewPage() {
 					message="加载失败"
 					description="无法加载黑名单条目信息，请稍后重试。"
 					type="error"
-					showIcon
+					showIcon={true}
 					action={
 						<Space>
 							<Button size="small" onClick={() => window.location.reload()}>
@@ -161,7 +161,7 @@ export default function BlacklistPreviewPage() {
 					message="条目不存在"
 					description="请求的黑名单条目不存在或已被删除。"
 					type="warning"
-					showIcon
+					showIcon={true}
 					action={
 						<Button size="small" onClick={() => router.push("/")}>
 							返回列表
@@ -213,7 +213,7 @@ export default function BlacklistPreviewPage() {
 	return (
 		<>
 			{/* 打印样式 */}
-			<style jsx global>{`
+			<style jsx={true} global={true}>{`
 				@media print {
 					.no-print {
 						display: none !important;
@@ -251,8 +251,8 @@ export default function BlacklistPreviewPage() {
 							</div>
 						}
 						type="info"
-						showIcon
-						closable
+						showIcon={true}
+						closable={true}
 						className="!mb-6 no-print"
 					/>
 				)}
@@ -327,12 +327,14 @@ export default function BlacklistPreviewPage() {
 							<div className="space-y-6">
 								<div>
 									<Typography.Title level={4}>基本信息</Typography.Title>
-									<Descriptions bordered column={2} size="middle">
+									<Descriptions bordered={true} column={2} size="middle">
 										<Descriptions.Item label="类型" span={1}>
 											{getBlacklistTypeLabel(item.type)}
 										</Descriptions.Item>
 										<Descriptions.Item label="失信人名称" span={1}>
-											<Typography.Text copyable>{item.value}</Typography.Text>
+											<Typography.Text copyable={true}>
+												{item.value}
+											</Typography.Text>
 										</Descriptions.Item>
 										<Descriptions.Item label="风险等级" span={1}>
 											<Tag color={getRiskLevelColor(item.risk_level)}>

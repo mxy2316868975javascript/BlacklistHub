@@ -25,7 +25,7 @@ const BlacklistSchema = new Schema(
 	{
 		type: {
 			type: String,
-			enum: ["user", "ip", "email", "phone", "company", "domain", "other"],
+			enum: ["person", "company", "organization", "other"],
 			required: true,
 			index: true,
 		},
@@ -94,6 +94,17 @@ const BlacklistSchema = new Schema(
 			type: String,
 			enum: ["draft", "pending", "published", "rejected", "retracted"],
 			default: "draft",
+			index: true,
+		},
+		visibility: {
+			type: String,
+			enum: ["public", "private", "restricted"],
+			default: "public",
+			index: true,
+		},
+		sensitive: {
+			type: Boolean,
+			default: false,
 			index: true,
 		},
 

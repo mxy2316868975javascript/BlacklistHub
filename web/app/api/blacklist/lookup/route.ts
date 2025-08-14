@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 	);
 	const hit = active.length > 0;
 	const riskOrder: Record<string, number> = { low: 0, medium: 1, high: 2 };
-	const risk_level = hit
+	const riskLevel = hit
 		? active.reduce(
 				(max, d) =>
 					riskOrder[d.risk_level as string] > riskOrder[max]
@@ -41,16 +41,16 @@ export async function GET(request: NextRequest) {
 	const sources = Array.from(
 		new Set(docs.flatMap((d: { sources?: string[] }) => d.sources || [])),
 	);
-	const sources_count = sources.length;
-	const updated_at = latest?.updated_at || latest?.created_at;
+	const sourcesCount = sources.length;
+	const updatedAt = latest?.updated_at || latest?.created_at;
 
 	return NextResponse.json({
 		hit,
 		type,
 		value,
-		risk_level,
+		risk_level: riskLevel,
 		status,
-		sources_count,
-		updated_at,
+		sources_count: sourcesCount,
+		updated_at: updatedAt,
 	});
 }

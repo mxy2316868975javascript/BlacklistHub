@@ -1,16 +1,16 @@
-import useSWR from "swr";
 import axios from "axios";
+import useSwr from "swr";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 // 获取理由码
 export function useReasonCodes(category?: string) {
-	const url = category 
+	const url = category
 		? `/api/enums/reason-codes?category=${category}&active=true`
 		: "/api/enums/reason-codes?active=true";
-		
-	const { data, error, isLoading } = useSWR(url, fetcher);
-	
+
+	const { data, error, isLoading } = useSwr(url, fetcher);
+
 	return {
 		reasonCodes: data?.data || [],
 		reasonCodeOptions: (data?.data || []).map((item: any) => ({
@@ -24,8 +24,11 @@ export function useReasonCodes(category?: string) {
 
 // 获取来源
 export function useSources() {
-	const { data, error, isLoading } = useSWR("/api/enums/sources?active=true", fetcher);
-	
+	const { data, error, isLoading } = useSwr(
+		"/api/enums/sources?active=true",
+		fetcher,
+	);
+
 	return {
 		sources: data?.data || [],
 		sourceOptions: (data?.data || []).map((item: any) => ({
@@ -39,20 +42,20 @@ export function useSources() {
 
 // 获取地区
 export function useRegions(grouped = false) {
-	const url = grouped 
+	const url = grouped
 		? "/api/enums/regions?active=true&grouped=true"
 		: "/api/enums/regions?active=true";
-		
-	const { data, error, isLoading } = useSWR(url, fetcher);
-	
+
+	const { data, error, isLoading } = useSwr(url, fetcher);
+
 	return {
 		regions: data?.data || [],
-		regionOptions: grouped 
+		regionOptions: grouped
 			? data?.data || []
 			: (data?.data || []).map((item: any) => ({
-				label: item.name,
-				value: item.code,
-			})),
+					label: item.name,
+					value: item.code,
+				})),
 		isLoading,
 		error,
 	};

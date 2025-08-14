@@ -376,14 +376,13 @@ function ImageAwareRenderer({ content }: { content: string }) {
 							)}
 						</div>
 					);
-				} else {
-					const renderedElements = renderTextContent(part.content);
-					return (
-						<div key={key} className="prose prose-sm max-w-none">
-							{renderedElements}
-						</div>
-					);
 				}
+				const renderedElements = renderTextContent(part.content);
+				return (
+					<div key={key} className="prose prose-sm max-w-none">
+						{renderedElements}
+					</div>
+				);
 			})}
 		</div>
 	);

@@ -2,7 +2,7 @@
 import { Card, Select, Space, Table, Tag } from "antd";
 import axios from "axios";
 import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
@@ -22,14 +22,14 @@ export default function DefaultersPage() {
 			{} as Record<string, string>,
 		),
 	).toString();
-	const { data, isLoading } = useSWR(`/api/defaulters?${qs}`, fetcher);
+	const { data, isLoading } = useSwr(`/api/defaulters?${qs}`, fetcher);
 
 	return (
 		<div className="p-6 space-y-4">
 			<Card>
-				<Space wrap>
+				<Space wrap={true}>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="类型"
 						style={{ width: 160 }}
 						onChange={(v) => setQuery((q) => ({ ...q, type: v, page: 1 }))}
@@ -42,7 +42,7 @@ export default function DefaultersPage() {
 						]}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="风险"
 						style={{ width: 160 }}
 						onChange={(v) =>
@@ -59,7 +59,7 @@ export default function DefaultersPage() {
 
 			<Card>
 				<Table
-					rowKey={(r) => `${r._id.type}:${r._id.value}`}
+					rowKey={(r: any) => `${r._id.type}:${r._id.value}`}
 					loading={isLoading}
 					dataSource={data?.items || []}
 					columns={[

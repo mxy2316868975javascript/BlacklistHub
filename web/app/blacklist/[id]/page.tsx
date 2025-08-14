@@ -19,7 +19,7 @@ import {
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 import WangEditorWrapper from "@/components/WangEditorWrapper";
 import {
 	type BlacklistItem,
@@ -46,7 +46,7 @@ const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 export default function BlacklistDetailPage() {
 	const params = useParams<{ id: string }>();
 	const router = useRouter();
-	const { data, mutate } = useSWR(`/api/blacklist/${params.id}`, fetcher);
+	const { data, mutate } = useSwr(`/api/blacklist/${params.id}`, fetcher);
 	const item: BlackItem | undefined = data;
 	const [reasonContent, setReasonContent] = useState("");
 	const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
@@ -228,7 +228,7 @@ export default function BlacklistDetailPage() {
 										<Select
 											placeholder="请选择理由码"
 											options={REASON_CODE_OPTIONS}
-											showSearch
+											showSearch={true}
 											filterOption={(input, option) =>
 												(option?.label ?? "")
 													.toLowerCase()
@@ -242,7 +242,7 @@ export default function BlacklistDetailPage() {
 										<DatePicker
 											placeholder="请选择到期时间"
 											style={{ width: "100%" }}
-											showTime
+											showTime={true}
 											format="YYYY-MM-DD HH:mm:ss"
 										/>
 									</Form.Item>
@@ -262,16 +262,16 @@ export default function BlacklistDetailPage() {
 							<Form.Item name="source" label="来源">
 								<Select
 									placeholder="请选择来源"
-									allowClear
+									allowClear={true}
 									options={SOURCE_OPTIONS}
 								/>
 							</Form.Item>
 							<Form.Item name="region" label="地区">
 								<Select
 									placeholder="请选择地区"
-									allowClear
+									allowClear={true}
 									options={REGION_OPTIONS_FLAT}
-									showSearch
+									showSearch={true}
 									optionFilterProp="label"
 									filterOption={(input, option) => {
 										if (!input) return true;

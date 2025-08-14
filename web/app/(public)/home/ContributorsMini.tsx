@@ -1,12 +1,12 @@
 "use client";
 import axios from "axios";
-import useSWR from "swr";
+import useSwr from "swr";
 
 const fetcher = (url: string, params?: any) =>
 	axios.get(url, { params }).then((r) => r.data);
 
 export default function ContributorsMini() {
-	const { data } = useSWR(["/api/contributors", { pageSize: 6 }], ([url, p]) =>
+	const { data } = useSwr(["/api/contributors", { pageSize: 6 }], ([url, p]) =>
 		fetcher(url, p),
 	);
 	return (

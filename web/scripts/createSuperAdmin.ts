@@ -33,12 +33,12 @@ import type { UserRole } from "../types/user";
 
 // 创建数据库连接函数
 async function connectToDatabase() {
-	const MONGODB_URI = process.env.MONGODB_URI;
-	if (!MONGODB_URI) {
+	const MongodbUri = process.env.MONGODB_URI;
+	if (!MongodbUri) {
 		throw new Error("MONGODB_URI 环境变量未设置");
 	}
 	console.log("连接到数据库...");
-	await mongoose.connect(MONGODB_URI);
+	await mongoose.connect(MongodbUri);
 	console.log("数据库连接成功");
 }
 
@@ -55,28 +55,28 @@ async function createSuperAdmin() {
 		});
 		if (existingSuperAdmin) {
 			// 重新生成密码哈希并更新用户
-			const password_hash = await bcrypt.hash(superAdminPassword, 10);
+			const passwordHash = await bcrypt.hash(superAdminPassword, 10);
 			await User.updateOne(
 				{ username: superAdminUsername },
 				{
 					role: "super_admin" as UserRole,
-					password_hash: password_hash,
+					password_hash: passwordHash,
 				},
 			);
 			console.log("🔄 超级管理员账号已更新！");
 			console.log("==========================================");
 			console.log(`用户名: ${superAdminUsername}`);
 			console.log(`密码: ${superAdminPassword}`);
-			console.log(`角色: super_admin`);
+			console.log("角色: super_admin");
 			console.log("==========================================");
 			return;
 		}
 
 		// 创建超级管理员用户
-		const password_hash = await bcrypt.hash(superAdminPassword, 10);
+		const passwordHash = await bcrypt.hash(superAdminPassword, 10);
 		const superAdminUser = await User.create({
 			username: superAdminUsername,
-			password_hash,
+			password_hash: passwordHash,
 			role: "super_admin" as UserRole,
 		});
 

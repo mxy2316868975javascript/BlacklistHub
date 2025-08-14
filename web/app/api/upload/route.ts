@@ -36,12 +36,12 @@ export async function POST(request: NextRequest) {
 		// 确保上传目录存在
 		console.log("Upload directory:", UPLOAD_DIR);
 		try {
-			if (!existsSync(UPLOAD_DIR)) {
+			if (existsSync(UPLOAD_DIR)) {
+				console.log("Upload directory already exists");
+			} else {
 				console.log("Creating upload directory...");
 				await mkdir(UPLOAD_DIR, { recursive: true });
 				console.log("Upload directory created successfully");
-			} else {
-				console.log("Upload directory already exists");
 			}
 		} catch (error) {
 			console.error("Failed to create upload directory:", error);

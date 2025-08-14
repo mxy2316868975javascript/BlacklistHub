@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
 	const type = searchParams.get("type") || undefined;
-	const risk_level = searchParams.get("risk_level") || undefined;
+	const riskLevel = searchParams.get("risk_level") || undefined;
 	const page = Number(searchParams.get("page") || 1);
 	const pageSize = Number(searchParams.get("pageSize") || 10);
 	const sort = (searchParams.get("sort") || "count") as
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
 	const match: Record<string, unknown> = {};
 	if (type) match.type = type;
-	if (risk_level) match.risk_level = risk_level;
+	if (riskLevel) match.risk_level = riskLevel;
 	if (range === "week") {
 		const d = new Date();
 		d.setDate(d.getDate() - 7);

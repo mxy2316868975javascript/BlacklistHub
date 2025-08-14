@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
 		// 检查是否有权限删除所有选中的用户
 		const unauthorizedUsers = existingUsers.filter(
-			(user) => !PERMISSIONS.CAN_DELETE_USER_BY_ROLE(me.role, user.role),
+			(user) => !PERMISSIONS.CAN_DELETE_USER_BY_ROLE(me.role, user.role as any),
 		);
 
 		if (unauthorizedUsers.length > 0) {

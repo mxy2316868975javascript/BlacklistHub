@@ -1,10 +1,70 @@
+"use client";
+import { Spin } from "antd";
+
+import GuestHomePage from "@/components/guest/GuestHomePage";
+
+import { useAuth } from "@/hooks/useAuth";
 import Hero from "./Hero";
 import QuickLookup from "./QuickLookup";
 import RankingSidebar from "./RankingSidebar";
 import ReasonsTicker from "./ReasonsTicker";
 import SearchCard from "./SearchCard";
 
+// 模拟公开统计数据
+const mockPublicStats = {
+	totalBlacklist: 125000,
+	publishedCount: 98500,
+	monthlyGrowth: 12.5,
+	activeContributors: 1250,
+};
+
+// 模拟最新公开黑名单
+const mockRecentBlacklist = [
+	{
+		id: "1",
+		type: "IP",
+		value: "192.168.***.***",
+		riskLevel: "high",
+		createdAt: new Date().toISOString(),
+	},
+	{
+		id: "2",
+		type: "Email",
+		value: "spam***@example.com",
+		riskLevel: "medium",
+		createdAt: new Date().toISOString(),
+	},
+	{
+		id: "3",
+		type: "Domain",
+		value: "malicious***.com",
+		riskLevel: "high",
+		createdAt: new Date().toISOString(),
+	},
+];
+
 export default function HomePublicPage() {
+	const { isGuest, loading } = useAuth();
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<Spin size="large" />
+			</div>
+		);
+	}
+
+	// 游客模式显示游客首页
+	if (isGuest) {
+		return (
+			<GuestHomePage
+				publicStats={mockPublicStats}
+				recentBlacklist={mockRecentBlacklist}
+			/>
+		);
+	}
+
+	// 已登录用户显示原有首页
 	return (
 		<main className="mx-auto p-6">
 			<Hero />

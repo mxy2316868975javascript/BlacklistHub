@@ -1,40 +1,37 @@
 /**
  * @fileoverview 枚举系统使用示例
- * 
+ *
  * @description
  * 本文件展示如何使用统一的枚举系统进行类型安全的开发。
- * 
+ *
  * @author BlacklistHub Team
  * @since 1.0.0
  */
 
 import {
-	// 枚举类型
-	UserRole,
-	BlacklistType,
-	RiskLevel,
-	BlacklistStatus,
-	Permission,
-	
-	// 选项常量
-	USER_ROLE_OPTIONS,
-	BLACKLIST_TYPE_OPTIONS,
-	RISK_LEVEL_OPTIONS,
 	BLACKLIST_STATUS_OPTIONS,
-	
+	BLACKLIST_TYPE_OPTIONS,
+	BlacklistStatus,
+	BlacklistType,
+	canEditBlacklistItem,
+	getBlacklistStatusColor,
+	getBlacklistStatusLabel,
+	getBlacklistTypeLabel,
+	getRiskLevelColor,
+	getRiskLevelLabel,
 	// 工具函数
 	getUserRoleLabel,
-	getBlacklistTypeLabel,
-	getRiskLevelLabel,
-	getRiskLevelColor,
-	getBlacklistStatusLabel,
-	getBlacklistStatusColor,
-	
 	// 权限检查函数
 	hasPermission,
-	canEditBlacklistItem,
-	ROLE_PERMISSIONS
-} from '@/types/enums';
+	Permission,
+	RISK_LEVEL_OPTIONS,
+	RiskLevel,
+	ROLE_PERMISSIONS,
+	// 选项常量
+	USER_ROLE_OPTIONS,
+	// 枚举类型
+	UserRole,
+} from "@/types/enums";
 
 // ================================
 // 基本使用示例
@@ -46,14 +43,14 @@ import {
 function userRoleExample() {
 	// 类型安全的枚举使用
 	const userRole: UserRole = UserRole.REPORTER;
-	
+
 	// 获取显示标签
 	const roleLabel = getUserRoleLabel(userRole);
 	console.log(`用户角色: ${roleLabel}`); // 输出: 用户角色: 举报者
-	
+
 	// 在表单中使用选项
 	const roleOptions = USER_ROLE_OPTIONS;
-	console.log('角色选项:', roleOptions);
+	console.log("角色选项:", roleOptions);
 	// 输出: [{ label: "举报者", value: "reporter" }, ...]
 }
 
@@ -62,15 +59,15 @@ function userRoleExample() {
  */
 function blacklistTypeExample() {
 	// 类型安全的枚举使用
-	const type: BlacklistType = BlacklistType.EMAIL;
-	
+	const type: BlacklistType = BlacklistType.PERSON;
+
 	// 获取显示标签
 	const typeLabel = getBlacklistTypeLabel(type);
 	console.log(`黑名单类型: ${typeLabel}`); // 输出: 黑名单类型: 邮箱
-	
+
 	// 在表单中使用选项
 	const typeOptions = BLACKLIST_TYPE_OPTIONS;
-	console.log('类型选项:', typeOptions);
+	console.log("类型选项:", typeOptions);
 }
 
 /**
@@ -78,14 +75,14 @@ function blacklistTypeExample() {
  */
 function riskLevelExample() {
 	const riskLevel: RiskLevel = RiskLevel.HIGH;
-	
+
 	// 获取显示标签和颜色
 	const label = getRiskLevelLabel(riskLevel);
 	const color = getRiskLevelColor(riskLevel);
-	
+
 	console.log(`风险等级: ${label}, 颜色: ${color}`);
 	// 输出: 风险等级: 高, 颜色: error
-	
+
 	// 在 Antd Tag 组件中使用
 	// <Tag color={getRiskLevelColor(riskLevel)}>
 	//   {getRiskLevelLabel(riskLevel)}
@@ -97,11 +94,11 @@ function riskLevelExample() {
  */
 function blacklistStatusExample() {
 	const status: BlacklistStatus = BlacklistStatus.PUBLISHED;
-	
+
 	// 获取显示标签和颜色
 	const label = getBlacklistStatusLabel(status);
 	const color = getBlacklistStatusColor(status);
-	
+
 	console.log(`状态: ${label}, 颜色: ${color}`);
 	// 输出: 状态: 已发布, 颜色: success
 }
@@ -115,17 +112,20 @@ function blacklistStatusExample() {
  */
 function permissionExample() {
 	const userRole: UserRole = UserRole.REPORTER;
-	
+
 	// 检查是否有特定权限
-	const canCreateBlacklist = hasPermission(userRole, Permission.CREATE_BLACKLIST);
+	const canCreateBlacklist = hasPermission(
+		userRole,
+		Permission.CREATE_BLACKLIST,
+	);
 	const canDeleteUsers = hasPermission(userRole, Permission.DELETE_USERS);
-	
+
 	console.log(`可以创建黑名单: ${canCreateBlacklist}`); // true
 	console.log(`可以删除用户: ${canDeleteUsers}`); // false
-	
+
 	// 获取用户的所有权限
 	const userPermissions = ROLE_PERMISSIONS[userRole];
-	console.log('用户权限:', userPermissions);
+	console.log("用户权限:", userPermissions);
 }
 
 /**
@@ -135,14 +135,22 @@ function editPermissionExample() {
 	const currentUserRole: UserRole = UserRole.REPORTER;
 	const currentUsername = "john_doe";
 	const itemOperator = "john_doe"; // 条目创建者
-	
+
 	// 检查是否可以编辑
-	const canEdit = canEditBlacklistItem(currentUserRole, itemOperator, currentUsername);
+	const canEdit = canEditBlacklistItem(
+		currentUserRole,
+		itemOperator,
+		currentUsername,
+	);
 	console.log(`可以编辑: ${canEdit}`); // true (因为是自己创建的)
-	
+
 	// 如果是其他人创建的条目
 	const otherItemOperator = "jane_doe";
-	const canEditOther = canEditBlacklistItem(currentUserRole, otherItemOperator, currentUsername);
+	const canEditOther = canEditBlacklistItem(
+		currentUserRole,
+		otherItemOperator,
+		currentUsername,
+	);
 	console.log(`可以编辑他人条目: ${canEditOther}`); // false (reporter不能编辑他人条目)
 }
 
@@ -155,7 +163,6 @@ function editPermissionExample() {
  */
 function ReactComponentExample() {
 	// 这是一个伪代码示例，展示在实际组件中如何使用
-	
 	/*
 	import { Select, Tag } from 'antd';
 	import { 
@@ -197,12 +204,12 @@ function typeGuardExample() {
 	function isValidUserRole(role: string): role is UserRole {
 		return Object.values(UserRole).includes(role as UserRole);
 	}
-	
+
 	// 检查是否为有效的黑名单类型
 	function isValidBlacklistType(type: string): type is BlacklistType {
 		return Object.values(BlacklistType).includes(type as BlacklistType);
 	}
-	
+
 	// 使用示例
 	const unknownRole = "unknown_role";
 	if (isValidUserRole(unknownRole)) {
@@ -221,14 +228,18 @@ function typeGuardExample() {
  */
 function enumComparisonExample() {
 	const userRole: UserRole = UserRole.ADMIN;
-	
+
 	// 类型安全的比较
 	if (userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN) {
-		console.log('用户是管理员');
+		console.log("用户是管理员");
 	}
-	
+
 	// 检查高权限用户
-	const highPrivilegeRoles = [UserRole.REVIEWER, UserRole.ADMIN, UserRole.SUPER_ADMIN];
+	const highPrivilegeRoles = [
+		UserRole.REVIEWER,
+		UserRole.ADMIN,
+		UserRole.SUPER_ADMIN,
+	];
 	const isHighPrivilege = highPrivilegeRoles.includes(userRole);
 	console.log(`是否为高权限用户: ${isHighPrivilege}`);
 }
@@ -242,5 +253,5 @@ export {
 	permissionExample,
 	editPermissionExample,
 	typeGuardExample,
-	enumComparisonExample
+	enumComparisonExample,
 };

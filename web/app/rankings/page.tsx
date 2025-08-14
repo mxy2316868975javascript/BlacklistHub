@@ -1,13 +1,23 @@
 "use client";
 import { Card, Col, List, Row, Tag } from "antd";
 import axios from "axios";
-import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
+
+interface TopReporter {
+	_id: string;
+	total: number;
+	published: number;
+}
+
+interface TopReasonCode {
+	_id: string;
+	count: number;
+}
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 export default function RankingsPage() {
-	const { data } = useSWR("/api/rankings", fetcher);
+	const { data } = useSwr("/api/rankings", fetcher);
 	return (
 		<div className="p-6 space-y-4">
 			<Row gutter={[16, 16]}>
@@ -15,7 +25,7 @@ export default function RankingsPage() {
 					<Card title="Top 贡献者（按录入量）">
 						<List
 							dataSource={data?.topReporters || []}
-							renderItem={(i: any, idx: number) => (
+							renderItem={(i: TopReporter, idx: number) => (
 								<List.Item>
 									<span className="w-8 text-neutral-500">#{idx + 1}</span>
 									<span className="flex-1">{i._id}</span>
@@ -30,7 +40,7 @@ export default function RankingsPage() {
 					<Card title="Top 理由码（按出现次数）">
 						<List
 							dataSource={data?.topReasonCodes || []}
-							renderItem={(i: any, idx: number) => (
+							renderItem={(i: TopReasonCode, idx: number) => (
 								<List.Item>
 									<span className="w-8 text-neutral-500">#{idx + 1}</span>
 									<span className="flex-1">{i._id}</span>

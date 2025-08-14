@@ -2,14 +2,14 @@
 import { Card, List, Segmented, Tag } from "antd";
 import axios from "axios";
 import React from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 export default function RankingSidebar() {
 	const [range, setRange] = React.useState<"week" | "all">("week");
 	const key = `/api/defaulters?range=${range}&sort=count&pageSize=10`;
-	const { data, isLoading } = useSWR(key, fetcher);
+	const { data, isLoading } = useSwr(key, fetcher);
 
 	return (
 		<Card

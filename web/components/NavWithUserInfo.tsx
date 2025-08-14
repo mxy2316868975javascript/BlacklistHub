@@ -1,35 +1,35 @@
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/auth";
-import type { UserInfo } from "@/types/user";
+// import { cookies } from "next/headers";
+// import { verifyToken } from "@/lib/auth";
+// import type { UserInfo } from "@/types/user";
 import NavClient from "./NavClient";
 
 // 服务器端获取用户信息的函数
-async function getUserInfo(): Promise<UserInfo | null> {
-	try {
-		const cookieStore = await cookies();
-		const token = cookieStore.get("token")?.value;
+// async function getUserInfo(): Promise<UserInfo | null> {
+// 	try {
+// 		const cookieStore = await cookies();
+// 		const token = cookieStore.get("token")?.value;
 
-		if (!token) return null;
+// 		if (!token) return null;
 
-		const payload = verifyToken<UserInfo>(token);
-		if (!payload) return null;
+// 		const payload = verifyToken<UserInfo>(token);
+// 		if (!payload) return null;
 
-		return {
-			uid: payload.uid,
-			username: payload.username,
-			role: payload.role || "reporter",
-		};
-	} catch (error) {
-		console.error("获取用户信息失败:", error);
-		return null;
-	}
-}
+// 		return {
+// 			uid: payload.uid,
+// 			username: payload.username,
+// 			role: payload.role || "reporter",
+// 		};
+// 	} catch (error) {
+// 		console.error("获取用户信息失败:", error);
+// 		return null;
+// 	}
+// }
 
 // 这是一个服务器端组件，展示如何使用从服务器端获取的用户信息
 export default async function NavWithUserInfo() {
-	const userInfo = await getUserInfo();
+	// const userInfo = await getUserInfo();
 
-	return <NavClient userInfo={userInfo || undefined} />;
+	return <NavClient />;
 }
 
 // 使用示例：

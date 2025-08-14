@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
 	type BlacklistItem,
 	type BlacklistStatus,
-	type BlacklistType,
+	BlacklistType,
 	getReasonCodeLabel,
 	getRegionLabel,
 	getSourceLabel,
@@ -78,10 +78,9 @@ export default function SearchCard() {
 		if (isHighPrivileged || isCreator) {
 			// 高权限用户或创建者，跳转到详情页面
 			return `/blacklist/${item._id}`;
-		} else {
-			// 其他用户(包括非创建者的reporter)，跳转到预览页面
-			return `/blacklist/${item._id}/preview`;
 		}
+		// 其他用户(包括非创建者的reporter)，跳转到预览页面
+		return `/blacklist/${item._id}/preview`;
 	};
 
 	const loadData = useCallback(
@@ -136,51 +135,51 @@ export default function SearchCard() {
 			<Card>
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="类型"
 						value={form.type}
 						onChange={(v) => setForm((f) => ({ ...f, type: v }))}
 						options={TYPE_OPTIONS}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="风险等级"
 						value={form.risk_level}
 						onChange={(v) => setForm((f) => ({ ...f, risk_level: v }))}
 						options={RISK_LEVEL_OPTIONS}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="状态"
 						value={form.status}
 						onChange={(v) => setForm((f) => ({ ...f, status: v }))}
 						options={STATUS_OPTIONS}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="来源"
 						value={form.source}
 						onChange={(v) => setForm((f) => ({ ...f, source: v }))}
 						options={SOURCE_OPTIONS}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="理由码"
 						value={form.reason_code}
 						onChange={(v) => setForm((f) => ({ ...f, reason_code: v }))}
 						options={REASON_CODE_OPTIONS}
-						showSearch
+						showSearch={true}
 						filterOption={(input, option) =>
 							(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
 						}
 					/>
 					<Select
-						allowClear
+						allowClear={true}
 						placeholder="地区"
 						value={form.region}
 						onChange={(v) => setForm((f) => ({ ...f, region: v }))}
 						options={REGION_OPTIONS_FLAT}
-						showSearch
+						showSearch={true}
 						optionFilterProp="label"
 						filterOption={(input, option) => {
 							if (!input) return true;
@@ -222,7 +221,7 @@ export default function SearchCard() {
 			<div className="bg-gray-50 rounded-lg p-6">
 				<div className="flex items-center justify-between mb-6">
 					<div className="flex items-center gap-3">
-						<div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+						<div className="w-2 h-6 bg-blue-500 rounded-full" />
 						<h3 className="!mb-0 text-lg font-semibold text-gray-900">
 							搜索结果
 						</h3>
@@ -370,15 +369,11 @@ export default function SearchCard() {
 														类型
 													</div>
 													<div className="font-bold text-gray-900">
-														{i.type === "user"
-															? "👤 用户"
-															: i.type === "ip"
-																? "🌐 IP地址"
-																: i.type === "email"
-																	? "📧 邮箱"
-																	: i.type === "phone"
-																		? "📱 手机号"
-																		: "🌍 域名"}
+														{i.type === BlacklistType.PERSON
+															? "👤 个人"
+															: i.type === BlacklistType.COMPANY
+																? "🏢 企业"
+																: "🏛️ 组织"}
 													</div>
 												</div>
 												<div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-3 border-l-4 border-purple-400">
@@ -433,7 +428,7 @@ export default function SearchCard() {
 											{/* 底部信息 */}
 											<div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100/80">
 												<div className="flex items-center gap-2 text-xs text-gray-500">
-													<div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+													<div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
 													更新时间：
 													{new Date(i.updated_at).toLocaleString("zh-CN")}
 												</div>

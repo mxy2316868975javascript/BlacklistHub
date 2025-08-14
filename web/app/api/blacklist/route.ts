@@ -9,10 +9,10 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
 	const type = searchParams.get("type") || undefined;
-	const risk_level = searchParams.get("risk_level") || undefined;
+	const riskLevel = searchParams.get("risk_level") || undefined;
 	const status = searchParams.get("status") || undefined;
 	const source = searchParams.get("source") || undefined;
-	const reason_code = searchParams.get("reason_code") || undefined;
+	const reasonCode = searchParams.get("reason_code") || undefined;
 	const region = searchParams.get("region") || undefined;
 	const keyword = searchParams.get("keyword")?.toLowerCase() || undefined;
 	const start = searchParams.get("start") || undefined;
@@ -23,10 +23,10 @@ export async function GET(request: NextRequest) {
 	await connectDB();
 	const q: Record<string, unknown> = {};
 	if (type) q.type = type;
-	if (risk_level) q.risk_level = risk_level;
+	if (riskLevel) q.risk_level = riskLevel;
 	if (status) q.status = status;
 	if (source) q.source = source;
-	if (reason_code) q.reason_code = reason_code;
+	if (reasonCode) q.reason_code = reasonCode;
 	if (region) q.region = region;
 
 	// 默认过滤已过期的记录（除非明确请求包含过期记录）
@@ -159,10 +159,7 @@ export async function POST(request: NextRequest) {
 		const shouldMerge =
 			!region || !existing.region || region === existing.region;
 
-		if (!shouldMerge) {
-			// 不同地区，创建新记录而不是合并
-			// 跳过合并逻辑，继续创建新记录
-		} else {
+		if (shouldMerge) {
 			// 检查风险等级升级情况
 			const riskLevels = { low: 1, medium: 2, high: 3 };
 			const existingRisk =

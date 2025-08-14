@@ -3,7 +3,7 @@ import { Card, message, Select, Table } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 import type { User, UserInfo } from "@/types/user";
 import { PERMISSIONS, USER_ROLE_OPTIONS } from "@/types/user";
 
@@ -15,8 +15,8 @@ const userInfoFetcher = (url: string) =>
 
 export default function AdminUsersPage() {
 	const router = useRouter();
-	const { data, mutate, isLoading } = useSWR("/api/users", usersFetcher);
-	const { data: currentUser } = useSWR("/api/userinfo", userInfoFetcher);
+	const { data, mutate, isLoading } = useSwr("/api/users", usersFetcher);
+	const { data: currentUser } = useSwr("/api/userinfo", userInfoFetcher);
 
 	const currentUserRole = currentUser?.user?.role;
 	const currentUserId = currentUser?.user?.uid;

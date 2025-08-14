@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
 	const { searchParams } = new URL(request.url);
 	const type = searchParams.get("type") || undefined;
-	const risk_level = searchParams.get("risk_level") || undefined;
+	const riskLevel = searchParams.get("risk_level") || undefined;
 	const keyword = searchParams.get("keyword")?.toLowerCase() || undefined;
 	const start = searchParams.get("start") || undefined;
 	const end = searchParams.get("end") || undefined;
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 	await connectDB();
 	const q: Record<string, unknown> = {};
 	if (type) q.type = type;
-	if (risk_level) q.risk_level = risk_level;
+	if (riskLevel) q.risk_level = riskLevel;
 	if (start || end) {
 		const range: { $gte?: Date; $lte?: Date } = {};
 		if (start) range.$gte = new Date(start);

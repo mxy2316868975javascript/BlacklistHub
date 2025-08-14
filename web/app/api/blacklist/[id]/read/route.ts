@@ -6,10 +6,11 @@ export const runtime = "nodejs";
 
 export async function GET(
 	_request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	await connectDB();
-	const doc = await Blacklist.findById(params.id).lean();
+	const { id } = await params;
+	const doc = await Blacklist.findById(id).lean();
 	if (!doc) return NextResponse.json({ message: "Not found" }, { status: 404 });
 	return NextResponse.json(doc);
 }

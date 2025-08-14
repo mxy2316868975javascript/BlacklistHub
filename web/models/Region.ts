@@ -64,5 +64,4 @@ export type Region = InferSchemaType<typeof RegionSchema> & {
 	_id: string;
 };
 
-export default mongoose.models.Region ||
-	mongoose.model("Region", RegionSchema);
+export default mongoose.models.Region || mongoose.model("Region", RegionSchema);

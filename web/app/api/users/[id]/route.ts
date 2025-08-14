@@ -71,7 +71,7 @@ export async function DELETE(
 	}
 
 	// 检查是否有权限删除该用户
-	if (!PERMISSIONS.CAN_DELETE_USER_BY_ROLE(me.role, user.role)) {
+	if (!PERMISSIONS.CAN_DELETE_USER_BY_ROLE(me.role, user.role as any)) {
 		return NextResponse.json(
 			{ message: "您没有权限删除该用户" },
 			{ status: 403 },

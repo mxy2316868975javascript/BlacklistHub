@@ -13,7 +13,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React, { useState } from "react";
-import useSWR from "swr";
+import useSwr from "swr";
 import {
 	getReasonCodeLabel,
 	getRegionLabel,
@@ -73,7 +73,7 @@ export default function BlacklistPage() {
 		"reporter",
 	);
 	const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
-	const { data, mutate, isLoading } = useSWR(
+	const { data, mutate, isLoading } = useSwr(
 		["/api/blacklist", query],
 		([url, p]) => fetcher(url, p),
 	);
@@ -105,10 +105,9 @@ export default function BlacklistPage() {
 		if (isHighPrivileged || isCreator) {
 			// 高权限用户或创建者，跳转到详情页面
 			return `/blacklist/${item._id}`;
-		} else {
-			// 其他用户(包括非创建者的reporter)，跳转到预览页面
-			return `/blacklist/${item._id}/preview`;
 		}
+		// 其他用户(包括非创建者的reporter)，跳转到预览页面
+		return `/blacklist/${item._id}/preview`;
 	};
 
 	const columns: ColumnsType<BlackItem> = [
@@ -234,7 +233,7 @@ export default function BlacklistPage() {
 					</Button>
 					<Button
 						type="link"
-						danger
+						danger={true}
 						onClick={async () => {
 							await axios.put(`/api/blacklist/${record._id}`, {
 								status: "retracted",
@@ -251,7 +250,7 @@ export default function BlacklistPage() {
 					</Button>
 					<Button
 						type="link"
-						danger
+						danger={true}
 						onClick={async () => {
 							await axios.delete(`/api/blacklist/${record._id}`);
 							message.success("已删除");
@@ -285,7 +284,7 @@ export default function BlacklistPage() {
 						<div className="w-[200px]">
 							<Select
 								className="w-full"
-								allowClear
+								allowClear={true}
 								options={[
 									{ label: "用户", value: "user" },
 									{ label: "IP", value: "ip" },
@@ -297,7 +296,7 @@ export default function BlacklistPage() {
 					<Form.Item name="risk_level" label="风险">
 						<div className="w-[160px]">
 							<Select
-								allowClear
+								allowClear={true}
 								options={[
 									{ label: "低", value: "low" },
 									{ label: "中", value: "medium" },
@@ -307,7 +306,7 @@ export default function BlacklistPage() {
 						</div>
 					</Form.Item>
 					<Form.Item name="keyword" label="关键词">
-						<Input placeholder="失信人/原因/理由码/来源" allowClear />
+						<Input placeholder="失信人/原因/理由码/来源" allowClear={true} />
 					</Form.Item>
 					<Form.Item name="start" label="开始">
 						<DatePicker

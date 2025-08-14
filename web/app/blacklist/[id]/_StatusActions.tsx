@@ -12,7 +12,7 @@ export default function StatusActions({
 	onChanged: () => void;
 }) {
 	return (
-		<Space wrap>
+		<Space wrap={true}>
 			<Button
 				onClick={async () => {
 					await axios.put(`/api/blacklist/${id}`, { status: "pending" });
@@ -44,7 +44,7 @@ export default function StatusActions({
 				退回
 			</Button>
 			<Button
-				danger
+				danger={true}
 				onClick={async () => {
 					await axios.put(`/api/blacklist/${id}`, { status: "retracted" });
 					message.success("已撤销");

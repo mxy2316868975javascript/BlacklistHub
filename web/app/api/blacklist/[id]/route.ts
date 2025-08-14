@@ -137,16 +137,15 @@ export async function PUT(
 		);
 	}
 	if (
-		status === "published" ||
-		status === "rejected" ||
-		status === "retracted"
+		(status === "published" ||
+			status === "rejected" ||
+			status === "retracted") &&
+		!(role === "reviewer" || role === "admin" || role === "super_admin")
 	) {
-		if (!(role === "reviewer" || role === "admin" || role === "super_admin")) {
-			return NextResponse.json(
-				{ message: "权限不足：需要 Reviewer、Admin 或 Super Admin" },
-				{ status: 403 },
-			);
-		}
+		return NextResponse.json(
+			{ message: "权限不足：需要 Reviewer、Admin 或 Super Admin" },
+			{ status: 403 },
+		);
 	}
 
 	// Apply updates

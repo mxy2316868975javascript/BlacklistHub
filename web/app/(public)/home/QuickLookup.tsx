@@ -4,9 +4,9 @@ import axios from "axios";
 import React from "react";
 
 export default function QuickLookup() {
-	const [type, setType] = React.useState<
-		"user" | "ip" | "email" | "phone" | "domain"
-	>("email");
+	const [type, setType] = React.useState<"person" | "company" | "organization">(
+		"person",
+	);
 	const [value, setValue] = React.useState("");
 	const [res, setRes] = React.useState<any>(null);
 	const [loading, setLoading] = React.useState(false);
@@ -34,11 +34,9 @@ export default function QuickLookup() {
 					onChange={setType}
 					style={{ width: 140 }}
 					options={[
-						{ label: "邮箱", value: "email" },
-						{ label: "IP", value: "ip" },
-						{ label: "手机号", value: "phone" },
-						{ label: "域名", value: "domain" },
-						{ label: "用户", value: "user" },
+						{ label: "个人", value: "person" },
+						{ label: "企业", value: "company" },
+						{ label: "组织", value: "organization" },
 					]}
 				/>
 				<Input

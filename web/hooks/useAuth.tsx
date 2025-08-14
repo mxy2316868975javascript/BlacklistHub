@@ -10,13 +10,18 @@ import {
 	useState,
 } from "react";
 import type { UserInfo } from "@/types/user";
+import { type GuestSession, useGuestSession } from "./useGuestSession";
 
 interface AuthContextType {
 	user: UserInfo | null;
 	loading: boolean;
+	isGuest: boolean;
+	guestSession: GuestSession | null;
 	login: (username: string, password: string) => Promise<void>;
 	logout: () => Promise<void>;
 	refreshUser: () => Promise<void>;
+	enterGuestMode: () => void;
+	exitGuestMode: () => void;
 	isAuthenticated: boolean;
 }
 
@@ -25,8 +30,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<UserInfo | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [isGuest, setIsGuest] = useState(false);
 	const router = useRouter();
 	const pathname = usePathname();
+
+	// 集成游客会话管理
+	const guestSessionHook = useGuestSession();
+	const { session: guestSession } = guestSessionHook;
 
 	// 判断是否为受保护的路由
 	const isProtectedRoute = useCallback((path: string) => {
@@ -51,10 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			if (response.data?.user) {
 				setUser(response.data.user);
 				return response.data.user;
-			} else {
-				setUser(null);
-				return null;
 			}
+			setUser(null);
+			return null;
 		} catch {
 			setUser(null);
 			return null;
@@ -85,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			console.error("Logout error:", error);
 		} finally {
 			setUser(null);
+			setIsGuest(false);
 			// 广播登出事件到其他标签页
 			localStorage.setItem(
 				"auth-event",
@@ -97,6 +107,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
+	// 进入游客模式
+	const enterGuestMode = useCallback(() => {
+		setIsGuest(true);
+		setUser(null);
+		// 广播游客模式事件到其他标签页
+		localStorage.setItem(
+			"auth-event",
+			JSON.stringify({
+				type: "enter_guest",
+				timestamp: Date.now(),
+			}),
+		);
+	}, []);
+
+	// 退出游客模式
+	const exitGuestMode = useCallback(() => {
+		setIsGuest(false);
+		guestSessionHook.resetSession();
+		// 广播退出游客模式事件到其他标签页
+		localStorage.setItem(
+			"auth-event",
+			JSON.stringify({
+				type: "exit_guest",
+				timestamp: Date.now(),
+			}),
+		);
+	}, [guestSessionHook]);
+
 	// 监听其他标签页的认证状态变化
 	useEffect(() => {
 		const handleStorageChange = (e: StorageEvent) => {
@@ -105,9 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					const event = JSON.parse(e.newValue);
 					if (event.type === "logout") {
 						setUser(null);
+						setIsGuest(false);
 						router.push("/login");
 					} else if (event.type === "login") {
+						setIsGuest(false);
 						checkAuth();
+					} else if (event.type === "enter_guest") {
+						setIsGuest(true);
+						setUser(null);
+					} else if (event.type === "exit_guest") {
+						setIsGuest(false);
 					}
 				} catch (error) {
 					console.error("Error parsing auth event:", error);
@@ -117,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 		window.addEventListener("storage", handleStorageChange);
 		return () => window.removeEventListener("storage", handleStorageChange);
-	}, [router]);
+	}, [router, checkAuth]);
 
 	// 初始化认证状态
 	useEffect(() => {
@@ -129,6 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			// 路由保护逻辑
 			if (currentUser) {
 				// 用户已登录
+				setIsGuest(false);
 				if (pathname === "/login" || pathname === "/register") {
 					// 已登录用户访问登录/注册页面，重定向到仪表盘
 					router.replace("/dashboard");
@@ -142,9 +188,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					}),
 				);
 			} else {
-				// 用户未登录
-				if (isProtectedRoute(pathname)) {
+				// 用户未登录，检查是否应该进入游客模式
+				if (
+					pathname === "/" ||
+					pathname.startsWith("/blacklist/public") ||
+					pathname.startsWith("/help")
+				) {
+					// 进入游客模式
+					setIsGuest(true);
+				} else if (isProtectedRoute(pathname)) {
 					// 未登录用户访问受保护页面，重定向到登录页
+					setIsGuest(false);
 					router.replace("/login");
 				}
 			}
@@ -158,9 +212,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const value: AuthContextType = {
 		user,
 		loading,
+		isGuest,
+		guestSession,
 		login,
 		logout,
 		refreshUser,
+		enterGuestMode,
+		exitGuestMode,
 		isAuthenticated,
 	};
 
@@ -195,7 +253,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				<div className="text-center">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
 					<p className="text-gray-600">加载中...</p>
 				</div>
 			</div>

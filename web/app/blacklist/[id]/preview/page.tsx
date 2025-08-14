@@ -45,12 +45,17 @@ import useSWR from "swr";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import {
 	type BlacklistItem,
-	getReasonCodeLabel,
 	getRegionLabel,
-	getRiskLevelLabel,
 	getSourceLabel,
-	getTypeLabel,
 } from "@/types/blacklist";
+import {
+	getBlacklistStatusColor,
+	getBlacklistStatusLabel,
+	getBlacklistTypeLabel,
+	getReasonCodeLabel,
+	getRiskLevelColor,
+	getRiskLevelLabel,
+} from "@/types/enums";
 import type { UserInfo } from "@/types/user";
 
 // 使用共享的BlacklistItem类型，但添加本页面特有的字段
@@ -167,52 +172,7 @@ export default function BlacklistPreviewPage() {
 		);
 	}
 
-	const getRiskLevelColor = (level: string) => {
-		switch (level) {
-			case "high":
-				return "error";
-			case "medium":
-				return "warning";
-			case "low":
-				return "success";
-			default:
-				return "default";
-		}
-	};
-
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case "published":
-				return "success";
-			case "pending":
-				return "processing";
-			case "rejected":
-				return "error";
-			case "retracted":
-				return "warning";
-			case "draft":
-				return "default";
-			default:
-				return "default";
-		}
-	};
-
-	const getStatusText = (status: string) => {
-		switch (status) {
-			case "published":
-				return "已发布";
-			case "pending":
-				return "待审核";
-			case "rejected":
-				return "已拒绝";
-			case "retracted":
-				return "已撤回";
-			case "draft":
-				return "草稿";
-			default:
-				return status;
-		}
-	};
+	// 使用统一的枚举函数（从 enums.ts 导入）
 
 	// 分享功能
 	const handleShare = async () => {
@@ -333,7 +293,7 @@ export default function BlacklistPreviewPage() {
 										</Typography.Title>
 										<div className="mt-3 flex flex-wrap gap-3">
 											<Tag color="blue" className="text-sm px-3 py-1">
-												{getTypeLabel(item.type)}
+												{getBlacklistTypeLabel(item.type)}
 											</Tag>
 											<Tag
 												color={getRiskLevelColor(item.risk_level)}
@@ -342,10 +302,10 @@ export default function BlacklistPreviewPage() {
 												风险等级：{getRiskLevelLabel(item.risk_level)}
 											</Tag>
 											<Tag
-												color={getStatusColor(item.status)}
+												color={getBlacklistStatusColor(item.status)}
 												className="text-sm px-3 py-1"
 											>
-												状态：{getStatusText(item.status)}
+												状态：{getBlacklistStatusLabel(item.status)}
 											</Tag>
 											{item.expires_at && (
 												<Tooltip
@@ -369,7 +329,7 @@ export default function BlacklistPreviewPage() {
 									<Typography.Title level={4}>基本信息</Typography.Title>
 									<Descriptions bordered column={2} size="middle">
 										<Descriptions.Item label="类型" span={1}>
-											{getTypeLabel(item.type)}
+											{getBlacklistTypeLabel(item.type)}
 										</Descriptions.Item>
 										<Descriptions.Item label="失信人名称" span={1}>
 											<Typography.Text copyable>{item.value}</Typography.Text>

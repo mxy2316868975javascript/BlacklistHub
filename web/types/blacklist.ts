@@ -1,50 +1,24 @@
 // 共享的黑名单相关类型定义
 
-export type BlacklistType =
-	| "user"
-	| "ip"
-	| "email"
-	| "phone"
-	| "company"
-	| "domain"
-	| "other";
+// 导入统一的枚举定义
+import {
+	BLACKLIST_STATUS_OPTIONS,
+	BLACKLIST_TYPE_OPTIONS,
+	type BlacklistStatus,
+	type BlacklistType,
+	type ReasonCode,
+	type RiskLevel,
+	type SourceType,
+} from "./enums";
 
-export type RiskLevel = "low" | "medium" | "high";
-
-export type BlacklistStatus =
-	| "draft"
-	| "pending"
-	| "published"
-	| "rejected"
-	| "retracted";
-
-export type SourceType =
-	| "user_report"
-	| "system_detection"
-	| "manual_review"
-	| "external_data"
-	| "partner"
-	| "regulatory"
-	| "other";
-
-export type ReasonCode =
-	| "fraud.payment"
-	| "fraud.chargeback"
-	| "fraud.identity"
-	| "fraud.account"
-	| "abuse.spam"
-	| "abuse.harassment"
-	| "abuse.phishing"
-	| "abuse.malware"
-	| "violation.terms"
-	| "violation.policy"
-	| "violation.legal"
-	| "security.breach"
-	| "security.suspicious"
-	| "quality.fake"
-	| "quality.duplicate"
-	| "other.manual"
-	| "other.system";
+// 重新导出枚举类型以保持向后兼容
+export {
+	BlacklistStatus,
+	BlacklistType,
+	ReasonCode,
+	RiskLevel,
+	SourceType,
+} from "./enums";
 
 export type Region =
 	// 直辖市
@@ -820,13 +794,8 @@ export const SOURCE_OPTIONS = Object.entries(SOURCE_LABELS).map(
 	}),
 );
 
-// 理由码选项（用于Select组件）
-export const REASON_CODE_OPTIONS = Object.entries(REASON_CODE_LABELS).map(
-	([value, label]) => ({
-		label,
-		value: value as ReasonCode,
-	}),
-);
+// 重新导出选项常量以保持向后兼容
+export { REASON_CODE_OPTIONS } from "./enums";
 
 // 地区选项（用于Select组件，按省份分组）
 export const REGION_OPTIONS = [
@@ -1015,33 +984,10 @@ export const REGION_OPTIONS_FLAT = Object.entries(REGION_LABELS).map(
 	}),
 );
 
-// 类型选项
-export const TYPE_OPTIONS: Array<{ label: string; value: BlacklistType }> = [
-	{ label: "用户", value: "user" },
-	{ label: "IP", value: "ip" },
-	{ label: "邮箱", value: "email" },
-	{ label: "手机号", value: "phone" },
-	{ label: "公司", value: "company" },
-	{ label: "域名", value: "domain" },
-	{ label: "其他", value: "other" },
-];
-
-// 风险等级选项
-export const RISK_LEVEL_OPTIONS: Array<{ label: string; value: RiskLevel }> = [
-	{ label: "低", value: "low" },
-	{ label: "中", value: "medium" },
-	{ label: "高", value: "high" },
-];
-
-// 状态选项
-export const STATUS_OPTIONS: Array<{ label: string; value: BlacklistStatus }> =
-	[
-		{ label: "草稿", value: "draft" },
-		{ label: "待复核", value: "pending" },
-		{ label: "已发布", value: "published" },
-		{ label: "已退回", value: "rejected" },
-		{ label: "已撤销", value: "retracted" },
-	];
+// 重新导出选项常量以保持向后兼容
+export const TYPE_OPTIONS = BLACKLIST_TYPE_OPTIONS;
+export { RISK_LEVEL_OPTIONS } from "./enums";
+export const STATUS_OPTIONS = BLACKLIST_STATUS_OPTIONS;
 
 // 获取来源的显示文本
 export function getSourceLabel(source?: SourceType): string {
@@ -1049,11 +995,8 @@ export function getSourceLabel(source?: SourceType): string {
 	return SOURCE_LABELS[source] || "未知";
 }
 
-// 获取理由码的显示文本
-export function getReasonCodeLabel(reasonCode?: ReasonCode): string {
-	if (!reasonCode) return "未知";
-	return REASON_CODE_LABELS[reasonCode] || reasonCode;
-}
+// 重新导出工具函数以保持向后兼容
+export { getReasonCodeLabel, getSourceTypeLabel } from "./enums";
 
 // 获取地区的显示文本
 export function getRegionLabel(region?: Region): string {
@@ -1061,18 +1004,11 @@ export function getRegionLabel(region?: Region): string {
 	return REGION_LABELS[region] || region;
 }
 
-// 获取类型的显示文本
-export function getTypeLabel(type?: BlacklistType): string {
-	if (!type) return "未知";
-	const typeOption = TYPE_OPTIONS.find((option) => option.value === type);
-	return typeOption?.label || type;
-}
-
-// 获取风险等级的显示文本
-export function getRiskLevelLabel(riskLevel?: RiskLevel): string {
-	if (!riskLevel) return "未知";
-	const riskOption = RISK_LEVEL_OPTIONS.find(
-		(option) => option.value === riskLevel,
-	);
-	return riskOption?.label || riskLevel;
-}
+// 重新导出工具函数以保持向后兼容
+export {
+	getBlacklistStatusColor as getStatusColor,
+	getBlacklistStatusLabel as getStatusLabel,
+	getBlacklistTypeLabel as getTypeLabel,
+	getRiskLevelColor,
+	getRiskLevelLabel,
+} from "./enums";

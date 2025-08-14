@@ -15,31 +15,11 @@
  * @since 1.0.0
  */
 
-/**
- * 用户角色类型定义
- *
- * @description 定义系统中的四种用户角色，按权限级别从低到高排列
- *
- * - `reporter`: 举报者 - 负责提交黑名单举报，录入违规信息
- * - `reviewer`: 审核员 - 负责审核举报内容，验证信息真实性
- * - `admin`: 管理员 - 负责用户管理和基础系统维护
- * - `super_admin`: 超级管理员 - 拥有系统级控制权限，不可被删除，可管理所有角色权限
- *
- * @example
- * ```typescript
- * const userRole: UserRole = "reporter";
- *
- * // 权限检查示例
- * function canDeleteUser(role: UserRole): boolean {
- *   return ["admin", "super_admin"].includes(role);
- * }
- *
- * function canDeleteAdmin(role: UserRole): boolean {
- *   return role === "super_admin";
- * }
- * ```
- */
-export type UserRole = "reporter" | "reviewer" | "admin" | "super_admin";
+// 导入统一的枚举定义
+import type { UserRole } from "./enums";
+
+// 重新导出以保持向后兼容
+export { USER_ROLE_OPTIONS, UserRole } from "./enums";
 
 /**
  * 用户认证信息类型
@@ -100,35 +80,7 @@ export type User = {
 	};
 };
 
-/**
- * 用户角色选项常量
- *
- * @description 用于前端下拉选择器和表单组件的角色选项配置
- *
- * 包含四种角色的显示标签和对应值：
- * - Reporter: 举报者，负责提交黑名单举报
- * - Reviewer: 审核员，负责审核举报内容
- * - Admin: 管理员，负责用户管理和基础系统维护
- * - Super Admin: 超级管理员，拥有系统级控制权限
- *
- * @example
- * ```typescript
- * // 在 Antd Select 组件中使用
- * <Select options={USER_ROLE_OPTIONS} />
- *
- * // 在 Dropdown 菜单中使用
- * const menuItems = USER_ROLE_OPTIONS.map(option => ({
- *   key: option.value,
- *   label: option.label
- * }));
- * ```
- */
-export const USER_ROLE_OPTIONS = [
-	{ label: "Reporter", value: "reporter" },
-	{ label: "Reviewer", value: "reviewer" },
-	{ label: "Admin", value: "admin" },
-	{ label: "Super Admin", value: "super_admin" },
-];
+// USER_ROLE_OPTIONS 现在从 enums.ts 导入
 
 // 黑名单相关类型定义
 export type BlacklistType =

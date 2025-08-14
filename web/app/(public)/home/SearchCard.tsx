@@ -3,7 +3,7 @@ import { Button, Card, DatePicker, Input, message, Select } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
 	type BlacklistItem,
 	type BlacklistStatus,
@@ -22,10 +22,12 @@ import {
 	STATUS_OPTIONS,
 	TYPE_OPTIONS,
 } from "@/types/blacklist";
+import type { UserInfo } from "@/types/user";
 
 export default function SearchCard() {
 	const router = useRouter();
 	const [loading, setLoading] = React.useState(false);
+	const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
 	const [result, setResult] = React.useState<{
 		total?: number;
 		items?: BlacklistItem[];
@@ -43,13 +45,44 @@ export default function SearchCard() {
 		end: undefined as string | undefined,
 	});
 
-	// 默认展示：空值（不设置默认状态）
-	// useEffect(() => {
-	// 	setForm((f) => ({ ...f, status: "published" }));
-	// }, []);
-
 	const [page, setPage] = React.useState(1);
 	const [hasMore, setHasMore] = React.useState(true);
+
+	// 获取当前用户信息
+	useEffect(() => {
+		const fetchUserInfo = async () => {
+			try {
+				const response = await axios.get("/api/me");
+				setCurrentUser(response.data.user);
+			} catch {
+				// 如果获取用户信息失败，可能是未登录用户，设置为null
+				setCurrentUser(null);
+			}
+		};
+
+		fetchUserInfo();
+	}, []);
+
+	// 根据用户角色和创建者身份决定跳转的URL
+	const getDetailUrl = (item: BlacklistItem) => {
+		if (!currentUser) {
+			// 未登录用户，跳转到预览页面
+			return `/blacklist/${item._id}/preview`;
+		}
+
+		const highPrivilegedRoles = ["reviewer", "admin", "super_admin"];
+		const isHighPrivileged = highPrivilegedRoles.includes(currentUser.role);
+		const isCreator = item.operator === currentUser.username;
+
+		// 只有高权限用户(reviewer/admin/super_admin)或创建者可以编辑
+		if (isHighPrivileged || isCreator) {
+			// 高权限用户或创建者，跳转到详情页面
+			return `/blacklist/${item._id}`;
+		} else {
+			// 其他用户(包括非创建者的reporter)，跳转到预览页面
+			return `/blacklist/${item._id}/preview`;
+		}
+	};
 
 	const loadData = useCallback(
 		async (pageNum: number, reset = false) => {
@@ -156,7 +189,7 @@ export default function SearchCard() {
 						}}
 					/>
 					<Input
-						placeholder="关键词（值/原因/操作人）"
+						placeholder="关键词（失信人/原因/操作人）"
 						value={form.keyword}
 						onChange={(e) =>
 							setForm((f) => ({ ...f, keyword: e.target.value }))
@@ -248,11 +281,11 @@ export default function SearchCard() {
 							<button
 								key={i._id}
 								type="button"
-								onClick={() => router.push(`/blacklist/${i._id}`)}
+								onClick={() => router.push(getDetailUrl(i))}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ") {
 										e.preventDefault();
-										router.push(`/blacklist/${i._id}`);
+										router.push(getDetailUrl(i));
 									}
 								}}
 								className={`group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:shadow-xl overflow-hidden border-t-4 ${

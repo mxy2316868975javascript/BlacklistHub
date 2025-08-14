@@ -12,7 +12,7 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import useSWR from "swr";
 import {
 	getReasonCodeLabel,
@@ -20,6 +20,7 @@ import {
 	type ReasonCode,
 	type Region,
 } from "@/types/blacklist";
+import type { UserInfo } from "@/types/user";
 
 type BlackItem = {
 	_id: string;
@@ -71,6 +72,7 @@ export default function BlacklistPage() {
 	const [role, setRole] = React.useState<"reporter" | "reviewer" | "admin">(
 		"reporter",
 	);
+	const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
 	const { data, mutate, isLoading } = useSWR(
 		["/api/blacklist", query],
 		([url, p]) => fetcher(url, p),
@@ -80,15 +82,38 @@ export default function BlacklistPage() {
 			try {
 				const res = await axios.get("/api/userinfo");
 				setRole(res.data?.user?.role || "reporter");
+				setCurrentUser(res.data?.user || null);
 			} catch {
 				setRole("reporter");
+				setCurrentUser(null);
 			}
 		})();
 	}, []);
 
+	// 根据用户角色和创建者身份决定跳转的URL
+	const getDetailUrl = (item: BlackItem) => {
+		if (!currentUser) {
+			// 未登录用户，跳转到预览页面
+			return `/blacklist/${item._id}/preview`;
+		}
+
+		const highPrivilegedRoles = ["reviewer", "admin", "super_admin"];
+		const isHighPrivileged = highPrivilegedRoles.includes(currentUser.role);
+		const isCreator = item.operator === currentUser.username;
+
+		// 只有高权限用户(reviewer/admin/super_admin)或创建者可以编辑
+		if (isHighPrivileged || isCreator) {
+			// 高权限用户或创建者，跳转到详情页面
+			return `/blacklist/${item._id}`;
+		} else {
+			// 其他用户(包括非创建者的reporter)，跳转到预览页面
+			return `/blacklist/${item._id}/preview`;
+		}
+	};
+
 	const columns: ColumnsType<BlackItem> = [
 		{ title: "类型", width: 100, dataIndex: "type", key: "type" },
-		{ title: "值", dataIndex: "value", key: "value" },
+		{ title: "失信人名称", dataIndex: "value", key: "value" },
 		{
 			title: "风险等级",
 			width: 100,
@@ -140,7 +165,7 @@ export default function BlacklistPage() {
 		{
 			title: "操作",
 			key: "actions",
-			width: 240,
+			width: 300,
 			align: "center" as const,
 			fixed: "right" as const,
 			render: (_: unknown, record: BlackItem) => (
@@ -148,7 +173,16 @@ export default function BlacklistPage() {
 					<Button
 						type="link"
 						onClick={() => {
-							window.location.href = `/blacklist/${record._id}`;
+							window.location.href = `/blacklist/${record._id}/preview`;
+						}}
+						title="查看只读预览版本"
+					>
+						预览
+					</Button>
+					<Button
+						type="link"
+						onClick={() => {
+							window.location.href = getDetailUrl(record);
 						}}
 					>
 						详情
@@ -273,7 +307,7 @@ export default function BlacklistPage() {
 						</div>
 					</Form.Item>
 					<Form.Item name="keyword" label="关键词">
-						<Input placeholder="值/原因/理由码/来源" allowClear />
+						<Input placeholder="失信人/原因/理由码/来源" allowClear />
 					</Form.Item>
 					<Form.Item name="start" label="开始">
 						<DatePicker

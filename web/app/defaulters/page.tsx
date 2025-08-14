@@ -64,7 +64,7 @@ export default function DefaultersPage() {
 					dataSource={data?.items || []}
 					columns={[
 						{ title: "类型", dataIndex: ["_id", "type"] },
-						{ title: "值", dataIndex: ["_id", "value"] },
+						{ title: "失信人名称", dataIndex: ["_id", "value"] },
 						{ title: "次数", dataIndex: "count", width: 100 },
 						{
 							title: "最近更新",

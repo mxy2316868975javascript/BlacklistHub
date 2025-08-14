@@ -155,10 +155,10 @@ export default function BlacklistForm({
 
 						<Form.Item
 							name="value"
-							label="值"
-							rules={[{ required: true, message: "请输入值" }]}
+							label="失信人名称"
+							rules={[{ required: true, message: "请输入失信人名称" }]}
 						>
-							<Input placeholder="输入具体值" />
+							<Input placeholder="输入具体失信人名称" />
 						</Form.Item>
 
 						{selectedType === "company" && (

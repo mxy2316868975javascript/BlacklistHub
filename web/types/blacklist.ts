@@ -1060,3 +1060,19 @@ export function getRegionLabel(region?: Region): string {
 	if (!region) return "未知";
 	return REGION_LABELS[region] || region;
 }
+
+// 获取类型的显示文本
+export function getTypeLabel(type?: BlacklistType): string {
+	if (!type) return "未知";
+	const typeOption = TYPE_OPTIONS.find((option) => option.value === type);
+	return typeOption?.label || type;
+}
+
+// 获取风险等级的显示文本
+export function getRiskLevelLabel(riskLevel?: RiskLevel): string {
+	if (!riskLevel) return "未知";
+	const riskOption = RISK_LEVEL_OPTIONS.find(
+		(option) => option.value === riskLevel,
+	);
+	return riskOption?.label || riskLevel;
+}

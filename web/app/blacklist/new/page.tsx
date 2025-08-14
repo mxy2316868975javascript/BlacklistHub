@@ -32,12 +32,12 @@ export default function NewBlacklistPage() {
 			case "domain":
 				return "例如: example.com";
 			default:
-				return "请输入标的值";
+				return "请输入标的失信人名称";
 		}
 	})();
 
 	const valueRules = [
-		{ required: true, message: "请填写值" },
+		{ required: true, message: "请填写失信人名称" },
 		({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
 			validator(_: unknown, v: string) {
 				const t = getFieldValue("type");
@@ -112,7 +112,7 @@ export default function NewBlacklistPage() {
 						<Form.Item name="type" label="类型" rules={[{ required: true }]}>
 							<Select options={TYPE_OPTIONS} />
 						</Form.Item>
-						<Form.Item name="value" label="值" rules={valueRules}>
+						<Form.Item name="value" label="失信人名称" rules={valueRules}>
 							<Input placeholder={valuePlaceholder} />
 						</Form.Item>
 						<Form.Item

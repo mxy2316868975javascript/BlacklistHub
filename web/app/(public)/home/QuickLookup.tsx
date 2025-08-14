@@ -12,7 +12,7 @@ export default function QuickLookup() {
 	const [loading, setLoading] = React.useState(false);
 
 	const lookup = async () => {
-		if (!value) return message.warning("请输入要查验的值");
+		if (!value) return message.warning("请输入要查验的失信人名称");
 		setLoading(true);
 		try {
 			const r = await axios.get("/api/blacklist/lookup", {
@@ -44,7 +44,7 @@ export default function QuickLookup() {
 				<Input
 					value={value}
 					onChange={(e) => setValue(e.target.value)}
-					placeholder="输入要快速查验的值"
+					placeholder="输入要快速查验的失信人名称"
 					onPressEnter={lookup}
 				/>
 				<Button type="primary" onClick={lookup} loading={loading}>

@@ -18,7 +18,7 @@ import {
 } from "antd";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useSWR from "swr";
 import WangEditorWrapper from "@/components/WangEditorWrapper";
 import {
@@ -29,6 +29,7 @@ import {
 	SOURCE_OPTIONS,
 	TYPE_OPTIONS,
 } from "@/types/blacklist";
+import type { UserInfo } from "@/types/user";
 import ReasonCodeHelp from "./_ReasonCodeHelp";
 import StatusActions from "./_StatusActions";
 import StatusTag from "./_StatusTag";
@@ -48,6 +49,10 @@ export default function BlacklistDetailPage() {
 	const { data, mutate } = useSWR(`/api/blacklist/${params.id}`, fetcher);
 	const item: BlackItem | undefined = data;
 	const [reasonContent, setReasonContent] = useState("");
+	const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
+	const [hasEditPermission, setHasEditPermission] = useState<boolean | null>(
+		null,
+	);
 	React.useEffect(() => {
 		if (typeof window !== "undefined") {
 			const url = new URL(window.location.href);
@@ -82,7 +87,45 @@ export default function BlacklistDetailPage() {
 		}
 	}, [item, form]);
 
+	// 检查用户权限
+	useEffect(() => {
+		const checkPermissions = async () => {
+			try {
+				const response = await axios.get("/api/me");
+				const user = response.data.user;
+				setCurrentUser(user);
+
+				if (item) {
+					const highPrivilegedRoles = ["reviewer", "admin", "super_admin"];
+					const isHighPrivileged = highPrivilegedRoles.includes(user.role);
+					const isCreator = item.operator === user.username;
+
+					// 只有高权限用户(reviewer/admin/super_admin)或创建者可以编辑
+					if (isHighPrivileged || isCreator) {
+						setHasEditPermission(true);
+					} else {
+						// 非授权用户(包括非创建者的reporter)，重定向到预览页面
+						router.push(`/blacklist/${params.id}/preview`);
+						return;
+					}
+				}
+			} catch {
+				// 未登录用户，重定向到预览页面
+				router.push(`/blacklist/${params.id}/preview`);
+			}
+		};
+
+		if (item) {
+			checkPermissions();
+		}
+	}, [item, params.id, router]);
+
 	if (!item) return <div className="p-6">加载中...</div>;
+
+	// 如果权限检查还在进行中，显示加载状态
+	if (hasEditPermission === null) {
+		return <div className="p-6">验证权限中...</div>;
+	}
 
 	return (
 		<div className="p-6 space-y-4">
@@ -155,7 +198,7 @@ export default function BlacklistDetailPage() {
 								<Col span={12}>
 									<Form.Item
 										name="value"
-										label="值"
+										label="失信人名称"
 										rules={[{ required: true }]}
 									>
 										<Input />

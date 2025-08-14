@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 	// 基本参数验证
 	if (!type || !value || !reason || !reason_code || !risk_level)
 		return NextResponse.json(
-			{ message: "缺少参数: 请提供 类型/值/风险等级/理由码/原因摘要" },
+			{ message: "缺少参数: 请提供 类型/失信人/风险等级/理由码/原因摘要" },
 			{ status: 400 },
 		);
 
@@ -133,9 +133,12 @@ export async function POST(request: NextRequest) {
 	if (!validReasonCodes.includes(reason_code))
 		return NextResponse.json({ message: "无效的理由码" }, { status: 400 });
 
-	// 值的格式验证
+	// 失信人名称的格式验证
 	if (typeof value !== "string" || value.length > 500)
-		return NextResponse.json({ message: "值格式无效或过长" }, { status: 400 });
+		return NextResponse.json(
+			{ message: "失信人名称格式无效或过长" },
+			{ status: 400 },
+		);
 	if (typeof reason !== "string" || reason.length > 1000)
 		return NextResponse.json({ message: "原因描述过长" }, { status: 400 });
 

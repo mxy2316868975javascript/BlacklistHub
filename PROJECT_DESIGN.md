@@ -102,7 +102,7 @@ Super Admin（超级管理员）
 {
   _id: ObjectId,
   type: "user" | "ip" | "email" | "phone" | "company" | "other",  // 类型
-  value: string,                                       // 值
+  value: string,                                       // 失信人名称
   company_name?: string,                              // 公司名称（当type为company时必填）
   reason_code: string,                                // 理由代码
   reason: string,                                     // 详细理由
@@ -391,7 +391,7 @@ const REASON_CODES = {
 - **High**: 高风险，严重违规或重复违规
 
 ### 数据合并逻辑
-当相同类型和值的记录存在时：
+当相同类型和失信人名称的记录存在时：
 1. 检查地区匹配性
 2. 合并来源信息
 3. 升级风险等级（取最高级别）
@@ -469,7 +469,7 @@ GET /api/blacklist/lookup?type=company&value=company_id&company_name=公司名�
 ```
 
 ### 高级搜索功能
-- **关键词搜索**: 支持值、理由、理由代码的模糊匹配
+- **关键词搜索**: 支持失信人名称、理由、理由代码的模糊匹配
 - **多维度筛选**: 类型、风险等级、状态、来源、地区
 - **时间范围**: 创建时间、更新时间筛选
 - **分页支持**: 支持大数据量的分页查询
@@ -478,7 +478,7 @@ GET /api/blacklist/lookup?type=company&value=company_id&company_name=公司名�
 
 ### CSV 导出格式
 ```csv
-ID,类型,值,风险等级,理由代码,理由,来源,地区,状态,创建时间,更新时间
+ID,类型,失信人名称,风险等级,理由代码,理由,来源,地区,状态,创建时间,更新时间
 ```
 
 ### JSON 导出格式

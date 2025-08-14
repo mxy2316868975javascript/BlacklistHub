@@ -4,6 +4,7 @@ import {
 	Button,
 	Card,
 	Col,
+	DatePicker,
 	Descriptions,
 	Divider,
 	Form,
@@ -17,8 +18,9 @@ import {
 } from "antd";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import useSWR from "swr";
+import WangEditorWrapper from "@/components/WangEditorWrapper";
 import {
 	type BlacklistItem,
 	REASON_CODE_OPTIONS,
@@ -29,7 +31,6 @@ import {
 } from "@/types/blacklist";
 import ReasonCodeHelp from "./_ReasonCodeHelp";
 import StatusActions from "./_StatusActions";
-
 import StatusTag from "./_StatusTag";
 import Timeline from "./_Timeline";
 
@@ -45,6 +46,8 @@ export default function BlacklistDetailPage() {
 	const params = useParams<{ id: string }>();
 	const router = useRouter();
 	const { data, mutate } = useSWR(`/api/blacklist/${params.id}`, fetcher);
+	const item: BlackItem | undefined = data;
+	const [reasonContent, setReasonContent] = useState("");
 	React.useEffect(() => {
 		if (typeof window !== "undefined") {
 			const url = new URL(window.location.href);
@@ -56,7 +59,12 @@ export default function BlacklistDetailPage() {
 		}
 	}, []);
 
-	const item: BlackItem | undefined = data;
+	// 当数据加载时，初始化富文本编辑器内容
+	React.useEffect(() => {
+		if (item?.reason) {
+			setReasonContent(item.reason);
+		}
+	}, [item?.reason]);
 
 	const [form] = Form.useForm<Partial<BlackItem>>();
 	React.useEffect(() => {
@@ -123,6 +131,7 @@ export default function BlacklistDetailPage() {
 								// 确保地区字段始终存在，即使为空也要传递（与新增页面保持一致）
 								const submitData = {
 									...values,
+									reason: reasonContent, // 使用富文本编辑器的内容
 									region: values.region || null,
 								};
 
@@ -187,17 +196,26 @@ export default function BlacklistDetailPage() {
 								</Col>
 								<Col span={8}>
 									<Form.Item name="expires_at" label="到期时间">
-										<Input type="date" />
+										<DatePicker
+											placeholder="请选择到期时间"
+											style={{ width: "100%" }}
+											showTime
+											format="YYYY-MM-DD HH:mm:ss"
+										/>
 									</Form.Item>
 								</Col>
 							</Row>
-							<Form.Item
-								name="reason"
-								label="原因摘要"
-								rules={[{ required: true, min: 5 }]}
-							>
-								<Input.TextArea rows={4} />
-							</Form.Item>
+							<div className="mb-4">
+								<label className="block text-sm font-medium mb-2">
+									原因摘要 <span className="text-red-500">*</span>
+								</label>
+								<WangEditorWrapper
+									value={reasonContent}
+									onChange={setReasonContent}
+									placeholder="请详细描述违规行为，可以插入图片和格式化文本作为证据..."
+									height={200}
+								/>
+							</div>
 							<Form.Item name="source" label="来源">
 								<Select
 									placeholder="请选择来源"

@@ -1,6 +1,13 @@
 // 共享的黑名单相关类型定义
 
-export type BlacklistType = "user" | "ip" | "email" | "phone" | "domain";
+export type BlacklistType =
+	| "user"
+	| "ip"
+	| "email"
+	| "phone"
+	| "company"
+	| "domain"
+	| "other";
 
 export type RiskLevel = "low" | "medium" | "high";
 
@@ -396,7 +403,9 @@ export interface BlacklistItem {
 	_id: string;
 	type: BlacklistType;
 	value: string;
-	reason: string;
+	reason: string; // Markdown 格式的原因摘要
+	reason_html?: string; // HTML 格式的富文本内容
+	reason_images?: string[]; // 图片URL数组
 	reason_code: ReasonCode;
 	risk_level: RiskLevel;
 	source?: SourceType;
@@ -408,6 +417,7 @@ export interface BlacklistItem {
 	updated_at: string;
 	expires_at?: string;
 	timeline?: TimelineItem[];
+	evidence?: EvidenceItem[];
 }
 
 export interface TimelineItem {
@@ -415,6 +425,13 @@ export interface TimelineItem {
 	by: string;
 	at: string;
 	note?: string;
+}
+
+export interface EvidenceItem {
+	images: string[];
+	description?: string;
+	uploaded_by: string;
+	uploaded_at: string;
 }
 
 // 来源类型的显示映射
@@ -1004,7 +1021,9 @@ export const TYPE_OPTIONS: Array<{ label: string; value: BlacklistType }> = [
 	{ label: "IP", value: "ip" },
 	{ label: "邮箱", value: "email" },
 	{ label: "手机号", value: "phone" },
+	{ label: "公司", value: "company" },
 	{ label: "域名", value: "domain" },
+	{ label: "其他", value: "other" },
 ];
 
 // 风险等级选项

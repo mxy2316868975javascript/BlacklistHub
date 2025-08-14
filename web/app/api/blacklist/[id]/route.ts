@@ -18,12 +18,19 @@ interface BlacklistDocument {
 	}>;
 	type?: string;
 	value?: string;
+	company_name?: string;
 	reason?: string;
 	reason_code?: string;
 	risk_level?: string;
 	region?: string | null;
 	status?: string;
 	note?: string;
+	evidence?: Array<{
+		images: string[];
+		description?: string;
+		uploaded_by: string;
+		uploaded_at: Date;
+	}>;
 	save: () => Promise<BlacklistDocument>;
 }
 
@@ -51,6 +58,7 @@ export async function PUT(
 	const {
 		type,
 		value,
+		company_name,
 		reason,
 		reason_code,
 		risk_level,
@@ -72,6 +80,7 @@ export async function PUT(
 	const updates: Record<string, unknown> = {};
 	if (type) updates.type = type;
 	if (value) updates.value = value;
+	if (company_name !== undefined) updates.company_name = company_name;
 	if (reason) updates.reason = reason;
 	if (reason_code) updates.reason_code = reason_code;
 	if (risk_level) updates.risk_level = risk_level;
@@ -157,6 +166,7 @@ export async function PUT(
 	}
 	if (type) doc.type = type;
 	if (value) doc.value = value;
+	if (company_name !== undefined) doc.company_name = company_name;
 	if (reason) doc.reason = reason;
 	if (reason_code) doc.reason_code = reason_code;
 	if (risk_level) doc.risk_level = risk_level;

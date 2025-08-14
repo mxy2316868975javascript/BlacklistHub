@@ -26,7 +26,7 @@ export default function ReasonCodeHelp() {
 				</div>
 			}
 		>
-			<span className="text-neutral-500 cursor-pointer inline-flex items-center">
+			<span className="float-right ml-[6px] text-neutral-500 cursor-pointer inline-flex items-center">
 				<InfoCircleOutlined className="mr-1" />
 				理由码说明
 			</span>

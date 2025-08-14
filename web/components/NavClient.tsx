@@ -120,6 +120,16 @@ export default function NavClient({
 					>
 						排名
 					</Link>
+
+					{userInfo && (
+						<Link
+							href="/blacklist/new"
+							className={linkCls("new")}
+							prefetch={false}
+						>
+							创建条目
+						</Link>
+					)}
 					{userRole &&
 						PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(userRole as UserRole) && (
 							<Link href="/users" className={linkCls("users")} prefetch={false}>

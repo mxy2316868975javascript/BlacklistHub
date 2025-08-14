@@ -130,6 +130,34 @@ export const USER_ROLE_OPTIONS = [
 	{ label: "Super Admin", value: "super_admin" },
 ];
 
+// 黑名单相关类型定义
+export type BlacklistType =
+	| "user"
+	| "ip"
+	| "email"
+	| "phone"
+	| "company"
+	| "domain"
+	| "other";
+
+export interface Blacklist {
+	_id: string;
+	type: BlacklistType;
+	value: string;
+	company_name?: string;
+	reason_code: string;
+	reason: string; // 现在支持富文本内容，包含嵌入的图片
+	source: string;
+	region: string;
+	risk_level: "low" | "medium" | "high";
+	status: "draft" | "pending" | "published" | "rejected" | "retracted";
+	submitter: string;
+	reviewer?: string;
+	created_at: Date;
+	updated_at: Date;
+	published_at?: Date;
+}
+
 /**
  * 权限检查常量
  *

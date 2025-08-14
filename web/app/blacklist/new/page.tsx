@@ -1,8 +1,10 @@
 "use client";
 
-import { Button, Card, Form, Input, message, Select } from "antd";
+import { Button, Card, DatePicker, Form, Input, message, Select } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import WangEditorWrapper from "@/components/WangEditorWrapper";
 import {
 	REASON_CODE_OPTIONS,
 	REGION_OPTIONS_FLAT,
@@ -15,6 +17,9 @@ export default function NewBlacklistPage() {
 	const [form] = Form.useForm();
 	const router = useRouter();
 	const typeValue = Form.useWatch("type", form);
+	const [reasonContent, setReasonContent] = useState("");
+	const [reasonHtml, setReasonHtml] = useState("");
+	const [reasonImages, setReasonImages] = useState<string[]>([]);
 
 	const valuePlaceholder = (() => {
 		switch (typeValue) {
@@ -62,9 +67,18 @@ export default function NewBlacklistPage() {
 	];
 
 	const onFinish = async (values: Record<string, unknown>) => {
+		// 验证富文本编辑器内容
+		if (!reasonContent.trim()) {
+			message.error("请填写原因摘要");
+			return;
+		}
+
 		// 确保地区字段始终存在，即使为空也要传递
 		const submitData = {
 			...values,
+			reason: reasonContent, // Markdown格式的内容
+			reason_html: reasonHtml, // HTML格式的内容
+			reason_images: reasonImages, // 图片URL数组
 			region: values.region || null, // 确保地区字段存在
 		};
 		const res = await axios.post("/api/blacklist", submitData);
@@ -125,7 +139,12 @@ export default function NewBlacklistPage() {
 							/>
 						</Form.Item>
 						<Form.Item name="expires_at" label="到期时间">
-							<Input type="date" />
+							<DatePicker
+								placeholder="请选择到期时间"
+								style={{ width: "100%" }}
+								showTime
+								format="YYYY-MM-DD HH:mm:ss"
+							/>
 						</Form.Item>
 						<Form.Item name="source" label="来源">
 							<Select
@@ -151,13 +170,19 @@ export default function NewBlacklistPage() {
 							/>
 						</Form.Item>
 					</div>
-					<Form.Item
-						name="reason"
-						label="原因摘要"
-						rules={[{ required: true, min: 5 }]}
-					>
-						<Input.TextArea rows={5} />
-					</Form.Item>
+					<div className="mb-4">
+						<label className="block text-sm font-medium mb-2">
+							原因摘要 <span className="text-red-500">*</span>
+						</label>
+						<WangEditorWrapper
+							value={reasonContent}
+							onChange={setReasonContent}
+							onHtmlChange={setReasonHtml}
+							onImagesChange={setReasonImages}
+							placeholder="请详细描述违规行为，可以插入图片和格式化文本作为证据..."
+							height={250}
+						/>
+					</div>
 				</Form>
 			</Card>
 		</div>

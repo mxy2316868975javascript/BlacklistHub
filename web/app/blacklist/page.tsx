@@ -1,5 +1,15 @@
 "use client";
-import { Button, Card, Form, Input, message, Select, Space, Table } from "antd";
+import {
+	Button,
+	Card,
+	DatePicker,
+	Form,
+	Input,
+	message,
+	Select,
+	Space,
+	Table,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React from "react";
@@ -266,10 +276,18 @@ export default function BlacklistPage() {
 						<Input placeholder="值/原因/理由码/来源" allowClear />
 					</Form.Item>
 					<Form.Item name="start" label="开始">
-						<Input type="date" />
+						<DatePicker
+							placeholder="请选择开始时间"
+							style={{ width: "100%" }}
+							format="YYYY-MM-DD"
+						/>
 					</Form.Item>
 					<Form.Item name="end" label="结束">
-						<Input type="date" />
+						<DatePicker
+							placeholder="请选择结束时间"
+							style={{ width: "100%" }}
+							format="YYYY-MM-DD"
+						/>
 					</Form.Item>
 					<Form.Item>
 						<Space>

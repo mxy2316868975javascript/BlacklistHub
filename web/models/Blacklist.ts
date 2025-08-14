@@ -11,15 +11,30 @@ const TimelineSchema = new Schema(
 	{ _id: false },
 );
 
+const EvidenceSchema = new Schema(
+	{
+		images: { type: [String], required: true },
+		description: { type: String, default: "" },
+		uploaded_by: { type: String, required: true },
+		uploaded_at: { type: Date, default: () => new Date() },
+	},
+	{ _id: false },
+);
+
 const BlacklistSchema = new Schema(
 	{
 		type: {
 			type: String,
-			enum: ["user", "ip", "email", "phone", "domain"],
+			enum: ["user", "ip", "email", "phone", "company", "domain", "other"],
 			required: true,
 			index: true,
 		},
 		value: { type: String, required: true, index: true },
+		company_name: {
+			type: String,
+			required: false,
+			index: true,
+		}, // 公司名称，当type为company时使用
 		risk_level: {
 			type: String,
 			enum: ["low", "medium", "high"],
@@ -50,7 +65,9 @@ const BlacklistSchema = new Schema(
 			required: true,
 			index: true,
 		},
-		reason: { type: String, required: true }, // 证据摘要/备注
+		reason: { type: String, required: true }, // 证据摘要/备注（Markdown格式）
+		reason_html: { type: String }, // HTML格式的富文本内容
+		reason_images: [{ type: String }], // 图片URL数组
 		source: {
 			type: String,
 			enum: [
@@ -79,11 +96,13 @@ const BlacklistSchema = new Schema(
 			default: "draft",
 			index: true,
 		},
+
 		operator: { type: String, required: true },
 		expires_at: { type: Date, index: true },
 		created_at: { type: Date, default: () => new Date(), index: true },
 		updated_at: { type: Date, default: () => new Date(), index: true },
 		timeline: { type: [TimelineSchema], default: [] },
+		evidence: { type: [EvidenceSchema], default: [] },
 	},
 	{ versionKey: false },
 );

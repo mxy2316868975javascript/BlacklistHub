@@ -70,7 +70,10 @@ export async function POST(request: NextRequest) {
 	const {
 		type,
 		value,
+		company_name,
 		reason,
+		reason_html, // 新增：HTML格式内容
+		reason_images, // 新增：图片URL数组
 		reason_code,
 		risk_level,
 		source,
@@ -84,8 +87,24 @@ export async function POST(request: NextRequest) {
 			{ status: 400 },
 		);
 
+	// 公司类型特殊验证
+	if (type === "company" && !company_name) {
+		return NextResponse.json(
+			{ message: "公司类型必须提供公司名称" },
+			{ status: 400 },
+		);
+	}
+
 	// 类型验证
-	const validTypes = ["user", "ip", "email", "phone", "domain"];
+	const validTypes = [
+		"user",
+		"ip",
+		"email",
+		"phone",
+		"company",
+		"domain",
+		"other",
+	];
 	const validRiskLevels = ["low", "medium", "high"];
 	const validReasonCodes = [
 		"fraud.payment",
@@ -201,10 +220,14 @@ export async function POST(request: NextRequest) {
 	const exp = expires_at
 		? new Date(expires_at)
 		: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+
 	const doc = await Blacklist.create({
 		type,
 		value,
+		company_name: type === "company" ? company_name : undefined,
 		reason,
+		reason_html, // 新增：HTML格式内容
+		reason_images, // 新增：图片URL数组
 		reason_code,
 		risk_level,
 		source,

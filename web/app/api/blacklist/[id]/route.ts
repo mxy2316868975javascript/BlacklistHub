@@ -36,12 +36,6 @@ export async function GET(
 	const { id } = await params;
 	const doc = await Blacklist.findById(id).lean();
 	if (!doc) return NextResponse.json({ message: "Not found" }, { status: 404 });
-	console.log("📖 GET请求 - 返回的文档:", {
-		id: doc._id,
-		region: doc.region,
-		type: doc.type,
-		value: doc.value,
-	});
 	return NextResponse.json(doc);
 }
 
@@ -64,19 +58,6 @@ export async function PUT(
 		status,
 		note,
 	} = body || {};
-
-	console.log("🔍 PUT请求 - 接收到的数据:", {
-		id,
-		type,
-		value,
-		reason,
-		reason_code,
-		risk_level,
-		source,
-		region,
-		status,
-		note,
-	});
 
 	const authHeader = request.headers.get("authorization");
 	const cookie = request.headers.get("cookie");
@@ -173,12 +154,6 @@ export async function PUT(
 	if (reason_code) doc.reason_code = reason_code;
 	if (risk_level) doc.risk_level = risk_level;
 	if (region !== undefined) {
-		console.log("🎯 更新地区字段:", {
-			原始值: region,
-			类型: typeof region,
-			处理后: region || null,
-			文档当前地区: doc.region,
-		});
 		doc.region = region || null; // 将空字符串转换为 null
 	}
 
@@ -205,12 +180,6 @@ export async function PUT(
 	}
 
 	const saved = await doc.save();
-	console.log("💾 保存后的文档:", {
-		id: saved._id,
-		region: saved.region,
-		type: saved.type,
-		value: saved.value,
-	});
 	return NextResponse.json(saved);
 }
 

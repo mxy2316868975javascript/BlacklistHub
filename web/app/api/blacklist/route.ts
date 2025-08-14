@@ -19,14 +19,6 @@ export async function GET(request: NextRequest) {
 	const page = Number(searchParams.get("page") || 1);
 	const pageSize = Number(searchParams.get("pageSize") || 10);
 
-	console.log("📋 GET /api/blacklist - 请求参数:", {
-		page,
-		pageSize,
-		skip: (page - 1) * pageSize,
-		limit: pageSize,
-		filters: { type, risk_level, status, source, reason_code, region, keyword },
-	});
-
 	await connectDB();
 	const q: Record<string, unknown> = {};
 	if (type) q.type = type;
@@ -68,14 +60,6 @@ export async function GET(request: NextRequest) {
 			.lean(),
 		Blacklist.countDocuments(q),
 	]);
-
-	console.log("📤 GET /api/blacklist - 返回结果:", {
-		page,
-		pageSize,
-		itemsCount: items.length,
-		total,
-		hasMore: page * pageSize < total,
-	});
 
 	return NextResponse.json({ items, total });
 }
@@ -156,9 +140,6 @@ export async function POST(request: NextRequest) {
 
 		if (!shouldMerge) {
 			// 不同地区，创建新记录而不是合并
-			console.log(
-				`不同地区记录，创建新记录: 现有=${existing.region}, 新=${region}`,
-			);
 			// 跳过合并逻辑，继续创建新记录
 		} else {
 			// 检查风险等级升级情况

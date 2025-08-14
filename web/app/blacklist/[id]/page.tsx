@@ -1,4 +1,5 @@
 "use client";
+import "@ant-design/v5-patch-for-react-19";
 import {
 	Button,
 	Card,
@@ -109,53 +110,6 @@ export default function BlacklistDetailPage() {
 							</div>
 							<Space>
 								<Button onClick={() => router.push("/")}>返回列表</Button>
-								<Button
-									onClick={() => {
-										const currentValues = form.getFieldsValue();
-										console.log("🔍 当前表单所有值:", currentValues);
-										console.log("📍 当前region字段:", {
-											hasRegion: Object.hasOwn(currentValues, "region"),
-											regionValue: currentValues.region,
-											regionType: typeof currentValues.region,
-										});
-									}}
-								>
-									调试：查看表单状态
-								</Button>
-								<Button
-									onClick={() => {
-										form.setFieldValue("region", "guangzhou");
-										console.log("🔄 手动设置地区为广州");
-									}}
-								>
-									调试：设置广州
-								</Button>
-								<Button
-									onClick={() => {
-										form.setFieldValue("region", null);
-										console.log("🔄 手动清空地区");
-									}}
-								>
-									调试：清空地区
-								</Button>
-								<Button
-									onClick={async () => {
-										try {
-											const response = await axios.post("/api/test-region", {
-												id: item._id,
-												region: "guangzhou",
-											});
-											console.log("🧪 测试API响应:", response.data);
-											message.info("测试完成，请查看控制台");
-											await mutate(); // 刷新数据
-										} catch (error) {
-											console.error("🧪 测试API错误:", error);
-											message.error("测试失败");
-										}
-									}}
-								>
-									测试：直接设置广州
-								</Button>
 								<Button type="primary" onClick={() => form.submit()}>
 									保存
 								</Button>

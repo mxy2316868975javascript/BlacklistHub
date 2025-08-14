@@ -4,6 +4,28 @@ import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
 
+// 类型定义
+interface BlacklistDocument {
+	_id: string;
+	sources?: string[];
+	source?: string;
+	timeline?: Array<{
+		action: string;
+		by: string;
+		at: Date;
+		note?: string;
+	}>;
+	type?: string;
+	value?: string;
+	reason?: string;
+	reason_code?: string;
+	risk_level?: string;
+	region?: string | null;
+	status?: string;
+	note?: string;
+	save: () => Promise<BlacklistDocument>;
+}
+
 export const runtime = "nodejs";
 
 export async function GET(
@@ -14,6 +36,12 @@ export async function GET(
 	const { id } = await params;
 	const doc = await Blacklist.findById(id).lean();
 	if (!doc) return NextResponse.json({ message: "Not found" }, { status: 404 });
+	console.log("📖 GET请求 - 返回的文档:", {
+		id: doc._id,
+		region: doc.region,
+		type: doc.type,
+		value: doc.value,
+	});
 	return NextResponse.json(doc);
 }
 
@@ -37,8 +65,21 @@ export async function PUT(
 		note,
 	} = body || {};
 
-	const authHeader = (request.headers as any).get?.("authorization");
-	const cookie = (request as any).headers?.get?.("cookie");
+	console.log("🔍 PUT请求 - 接收到的数据:", {
+		id,
+		type,
+		value,
+		reason,
+		reason_code,
+		risk_level,
+		source,
+		region,
+		status,
+		note,
+	});
+
+	const authHeader = request.headers.get("authorization");
+	const cookie = request.headers.get("cookie");
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.slice(7)
 		: /(?:^|; )token=([^;]+)/.exec(cookie || "")?.[1];
@@ -48,7 +89,7 @@ export async function PUT(
 	if (!me)
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-	const updates: any = {};
+	const updates: Record<string, unknown> = {};
 	if (type) updates.type = type;
 	if (value) updates.value = value;
 	if (reason) updates.reason = reason;
@@ -56,15 +97,15 @@ export async function PUT(
 	if (risk_level) updates.risk_level = risk_level;
 	if (source) {
 		updates.source = source;
-		updates.sources = { $addToSet: source } as any; // will handle below
+		updates.sources = { $addToSet: source }; // will handle below
 	}
 	if (status) updates.status = status;
 
-	const doc = await Blacklist.findById(id);
+	const doc = (await Blacklist.findById(id)) as BlacklistDocument | null;
 	if (!doc) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
 	// Transition rules for single-reviewer workflow
-	const canTransition = (from: string, to: string) => {
+	const canTransition = (from: string, to: string, userRole: string) => {
 		const allowed: Record<string, string[]> = {
 			draft: ["pending", "retracted"],
 			pending: ["published", "rejected"],
@@ -72,17 +113,32 @@ export async function PUT(
 			rejected: ["pending", "retracted"],
 			retracted: [],
 		};
+
+		// Admin可以直接发布草稿
+		if (userRole === "admin" && from === "draft" && to === "published") {
+			return true;
+		}
+
 		return allowed[from]?.includes(to);
 	};
 
-	if (status && !canTransition(doc.status, status)) {
+	// Role gating for transitions
+	const role = (me.role || "reporter").toLowerCase();
+
+	// 检查已发布记录的修改权限
+	if (doc.status === "published" && role !== "admin") {
+		return NextResponse.json(
+			{ message: "权限不足：只有Admin可以修改已发布的记录" },
+			{ status: 403 },
+		);
+	}
+
+	if (status && !canTransition(doc.status || "draft", status, role)) {
 		return NextResponse.json(
 			{ message: `非法状态流转: ${doc.status} -> ${status}` },
 			{ status: 400 },
 		);
 	}
-	// Role gating for transitions
-	const role = (me.role || "reporter").toLowerCase();
 	if (
 		status === "published" ||
 		status === "rejected" ||
@@ -99,9 +155,9 @@ export async function PUT(
 	// Apply updates
 	if (source) {
 		const setSources = new Set([...(doc.sources || []), source]);
-		(doc as any).sources = Array.from(setSources);
-		(doc as any).source = source;
-		(doc as any).timeline = [
+		doc.sources = Array.from(setSources);
+		doc.source = source;
+		doc.timeline = [
 			...(doc.timeline || []),
 			{
 				action: "merge_source",
@@ -111,15 +167,23 @@ export async function PUT(
 			},
 		];
 	}
-	if (type) (doc as any).type = type;
-	if (value) (doc as any).value = value;
-	if (reason) (doc as any).reason = reason;
-	if (reason_code) (doc as any).reason_code = reason_code;
-	if (risk_level) (doc as any).risk_level = risk_level;
-	if (region !== undefined) (doc as any).region = region || null; // 将空字符串转换为 null
+	if (type) doc.type = type;
+	if (value) doc.value = value;
+	if (reason) doc.reason = reason;
+	if (reason_code) doc.reason_code = reason_code;
+	if (risk_level) doc.risk_level = risk_level;
+	if (region !== undefined) {
+		console.log("🎯 更新地区字段:", {
+			原始值: region,
+			类型: typeof region,
+			处理后: region || null,
+			文档当前地区: doc.region,
+		});
+		doc.region = region || null; // 将空字符串转换为 null
+	}
 
 	if (status) {
-		(doc as any).status = status;
+		doc.status = status;
 		const actionMap: Record<string, string> = {
 			pending: "submit",
 			published: "publish",
@@ -128,19 +192,25 @@ export async function PUT(
 		};
 		const action = actionMap[status];
 		if (action) {
-			(doc as any).timeline = [
+			doc.timeline = [
 				...(doc.timeline || []),
 				{ action, by: me.username, at: new Date(), note },
 			];
 		}
 	} else {
-		(doc as any).timeline = [
+		doc.timeline = [
 			...(doc.timeline || []),
 			{ action: "update", by: me.username, at: new Date(), note },
 		];
 	}
 
 	const saved = await doc.save();
+	console.log("💾 保存后的文档:", {
+		id: saved._id,
+		region: saved.region,
+		type: saved.type,
+		value: saved.value,
+	});
 	return NextResponse.json(saved);
 }
 

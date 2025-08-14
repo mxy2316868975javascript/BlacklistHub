@@ -21,7 +21,7 @@ import useSWR from "swr";
 import {
 	type BlacklistItem,
 	REASON_CODE_OPTIONS,
-	REGION_OPTIONS,
+	REGION_OPTIONS_FLAT,
 	RISK_LEVEL_OPTIONS,
 	SOURCE_OPTIONS,
 	TYPE_OPTIONS,
@@ -73,14 +73,6 @@ export default function BlacklistDetailPage() {
 		}
 	}, [item, form]);
 
-	const statusColor: Record<BlackItem["status"], string> = {
-		draft: "default",
-		pending: "processing",
-		published: "success",
-		rejected: "error",
-		retracted: "warning",
-	};
-
 	if (!item) return <div className="p-6">加载中...</div>;
 
 	return (
@@ -117,6 +109,53 @@ export default function BlacklistDetailPage() {
 							</div>
 							<Space>
 								<Button onClick={() => router.push("/")}>返回列表</Button>
+								<Button
+									onClick={() => {
+										const currentValues = form.getFieldsValue();
+										console.log("🔍 当前表单所有值:", currentValues);
+										console.log("📍 当前region字段:", {
+											hasRegion: Object.hasOwn(currentValues, "region"),
+											regionValue: currentValues.region,
+											regionType: typeof currentValues.region,
+										});
+									}}
+								>
+									调试：查看表单状态
+								</Button>
+								<Button
+									onClick={() => {
+										form.setFieldValue("region", "guangzhou");
+										console.log("🔄 手动设置地区为广州");
+									}}
+								>
+									调试：设置广州
+								</Button>
+								<Button
+									onClick={() => {
+										form.setFieldValue("region", null);
+										console.log("🔄 手动清空地区");
+									}}
+								>
+									调试：清空地区
+								</Button>
+								<Button
+									onClick={async () => {
+										try {
+											const response = await axios.post("/api/test-region", {
+												id: item._id,
+												region: "guangzhou",
+											});
+											console.log("🧪 测试API响应:", response.data);
+											message.info("测试完成，请查看控制台");
+											await mutate(); // 刷新数据
+										} catch (error) {
+											console.error("🧪 测试API错误:", error);
+											message.error("测试失败");
+										}
+									}}
+								>
+									测试：直接设置广州
+								</Button>
 								<Button type="primary" onClick={() => form.submit()}>
 									保存
 								</Button>
@@ -127,10 +166,31 @@ export default function BlacklistDetailPage() {
 							form={form}
 							layout="vertical"
 							onFinish={async (values) => {
-								await axios.put(`/api/blacklist/${item._id}`, {
+								console.log("🔍 表单提交 - values:", values);
+
+								// 确保地区字段始终存在，即使为空也要传递（与新增页面保持一致）
+								const submitData = {
 									...values,
-								});
+									region: values.region || null,
+								};
+								console.log("📤 最终提交数据:", submitData);
+
+								const response = await axios.put(
+									`/api/blacklist/${item._id}`,
+									submitData,
+								);
+								console.log("✅ PUT响应:", response.data);
+
+								// 强制刷新数据
+								await mutate();
 								message.success("已保存");
+							}}
+							onValuesChange={(changedValues, allValues) => {
+								console.log("📝 表单值变化:", changedValues);
+								if (Object.hasOwn(changedValues, "region")) {
+									console.log("🎯 地区字段变化:", changedValues.region);
+								}
+								console.log("📋 当前所有值:", allValues);
 							}}
 						>
 							<Row gutter={12}>
@@ -209,8 +269,9 @@ export default function BlacklistDetailPage() {
 								<Select
 									placeholder="请选择地区"
 									allowClear
-									options={REGION_OPTIONS}
+									options={REGION_OPTIONS_FLAT}
 									showSearch
+									optionFilterProp="label"
 									filterOption={(input, option) => {
 										if (!input) return true;
 										const searchText = input.toLowerCase();

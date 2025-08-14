@@ -1,13 +1,11 @@
 "use client";
 
-import { InfoCircleOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message, Select } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import React from "react";
 import {
 	REASON_CODE_OPTIONS,
-	REGION_OPTIONS,
+	REGION_OPTIONS_FLAT,
 	RISK_LEVEL_OPTIONS,
 	SOURCE_OPTIONS,
 	TYPE_OPTIONS,
@@ -35,7 +33,7 @@ export default function NewBlacklistPage() {
 
 	const valueRules = [
 		{ required: true, message: "请填写值" },
-		({ getFieldValue }: any) => ({
+		({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
 			validator(_: unknown, v: string) {
 				const t = getFieldValue("type");
 				if (!v) return Promise.resolve();
@@ -100,7 +98,7 @@ export default function NewBlacklistPage() {
 						<Form.Item name="type" label="类型" rules={[{ required: true }]}>
 							<Select options={TYPE_OPTIONS} />
 						</Form.Item>
-						<Form.Item name="value" label="值" rules={valueRules as any}>
+						<Form.Item name="value" label="值" rules={valueRules}>
 							<Input placeholder={valuePlaceholder} />
 						</Form.Item>
 						<Form.Item
@@ -140,8 +138,9 @@ export default function NewBlacklistPage() {
 							<Select
 								placeholder="请选择地区"
 								allowClear
-								options={REGION_OPTIONS}
+								options={REGION_OPTIONS_FLAT}
 								showSearch
+								optionFilterProp="label"
 								filterOption={(input, option) => {
 									if (!input) return true;
 									const searchText = input.toLowerCase();

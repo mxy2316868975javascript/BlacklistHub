@@ -12,7 +12,7 @@ import {
 	getRegionLabel,
 	getSourceLabel,
 	REASON_CODE_OPTIONS,
-	REGION_OPTIONS,
+	REGION_OPTIONS_FLAT,
 	type ReasonCode,
 	type Region,
 	RISK_LEVEL_OPTIONS,
@@ -49,54 +49,68 @@ export default function SearchCard() {
 	// }, []);
 
 	const [page, setPage] = React.useState(1);
+	const [hasMore, setHasMore] = React.useState(true);
 
-	const load = useCallback(
-		async (reset = false) => {
+	const loadData = useCallback(
+		async (pageNum: number, reset = false) => {
+			console.log("🔄 加载数据:", { pageNum, reset, form });
 			setLoading(true);
 			try {
 				const res = await axios.get("/api/blacklist", {
-					params: { ...form, page: reset ? 1 : page, pageSize: 10 },
+					params: { ...form, page: pageNum, pageSize: 10 },
 				});
+				console.log("📊 API响应:", {
+					page: pageNum,
+					total: res.data?.total,
+					itemsCount: res.data?.items?.length,
+					reset,
+				});
+				const total = res.data?.total || 0;
+				const newItemsCount = res.data?.items?.length || 0;
+
 				if (reset) {
 					setResult(res.data || {});
-					setPage(1);
+					setPage(pageNum);
+					setHasMore(newItemsCount === 10 && pageNum * 10 < total);
 				} else {
-					setResult((prev) => ({
-						total: res.data?.total || prev.total,
-						items: [...(prev.items || []), ...(res.data?.items || [])],
-					}));
+					setResult((prev) => {
+						const newItems = [
+							...(prev.items || []),
+							...(res.data?.items || []),
+						];
+						console.log("📝 合并结果:", {
+							previousCount: prev.items?.length || 0,
+							newCount: res.data?.items?.length || 0,
+							totalCount: newItems.length,
+							total,
+							hasMoreData: newItems.length < total,
+						});
+						return {
+							total: res.data?.total || prev.total,
+							items: newItems,
+						};
+					});
+					setPage(pageNum);
+					// 检查是否还有更多数据
+					setHasMore(pageNum * 10 < total);
 				}
 			} catch (e) {
+				console.error("❌ 加载失败:", e);
 				message.error(`查询失败 ${e}`);
 			} finally {
 				setLoading(false);
 			}
 		},
-		[form, page],
+		[form],
 	);
 
-	<Select
-		allowClear
-		placeholder="默认：已发布"
-		value={form.status}
-		onChange={(v) => setForm((f) => ({ ...f, status: v }))}
-		options={[
-			{ label: "全部", value: undefined },
-			{ label: "草稿", value: "draft" },
-			{ label: "待复核", value: "pending" },
-			{ label: "已发布", value: "published" },
-			{ label: "已退回", value: "rejected" },
-			{ label: "已撤销", value: "retracted" },
-		]}
-	/>;
-
+	// 初始加载数据
 	useEffect(() => {
-		load(true);
-	}, [load]);
+		loadData(1, true);
+	}, [loadData]);
 
 	const search = async () => {
-		setPage(1);
-		await load(true);
+		await loadData(1, true);
 	};
 
 	return (
@@ -147,15 +161,13 @@ export default function SearchCard() {
 						placeholder="地区"
 						value={form.region}
 						onChange={(v) => setForm((f) => ({ ...f, region: v }))}
-						options={REGION_OPTIONS}
+						options={REGION_OPTIONS_FLAT}
 						showSearch
+						optionFilterProp="label"
 						filterOption={(input, option) => {
 							if (!input) return true;
 							const searchText = input.toLowerCase();
-							// 搜索选项标签
-							if (option?.label?.toLowerCase().includes(searchText))
-								return true;
-							return false;
+							return (option?.label ?? "").toLowerCase().includes(searchText);
 						}}
 					/>
 					<Input
@@ -248,10 +260,9 @@ export default function SearchCard() {
 				) : (
 					<div className="grid gap-4">
 						{(result.items || []).map((i) => (
-							<div
+							<button
 								key={i._id}
-								role="button"
-								tabIndex={0}
+								type="button"
 								onClick={() => router.push(`/blacklist/${i._id}`)}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ") {
@@ -435,29 +446,43 @@ export default function SearchCard() {
 										</div>
 									</div>
 								</div>
-							</div>
+							</button>
 						))}
 					</div>
 				)}
 
 				{/* 加载更多按钮 */}
 				{(result.items || []).length > 0 && (
-					<div className="mt-6 flex justify-center">
-						<Button
-							type="default"
-							size="large"
-							disabled={
-								loading || (result.items?.length || 0) >= (result.total || 0)
-							}
-							onClick={async () => {
-								setPage((p) => p + 1);
-								await load(false);
-							}}
-							className="px-8 py-2 h-auto rounded-lg border-2 border-blue-200 text-blue-600 hover:border-blue-400 hover:text-blue-700 font-medium"
-						>
-							{loading ? "加载中..." : "加载更多"}
-						</Button>
-					</div>
+					<>
+						<div className="mt-6 w-full flex justify-center">
+							<Button
+								type="default"
+								size="large"
+								disabled={loading || !hasMore}
+								onClick={async () => {
+									const nextPage = page + 1;
+									console.log("🔄 点击加载更多:", {
+										currentPage: page,
+										nextPage,
+										hasMore,
+										loading,
+										currentItemsCount: result.items?.length || 0,
+										total: result.total || 0,
+									});
+									await loadData(nextPage, false);
+								}}
+								className="px-8 py-2 h-auto rounded-lg border-2 border-blue-200 text-blue-600 hover:border-blue-400 hover:text-blue-700 font-medium"
+							>
+								{loading ? "加载中..." : hasMore ? "加载更多" : "没有更多数据"}
+							</Button>
+						</div>
+						<div className="mt-6 flex justify-center">
+							<div className="text-sm text-gray-500 mb-2">
+								已显示 {result.items?.length || 0} / {result.total || 0} 条记录
+								{hasMore ? " - 还有更多数据" : " - 已显示全部"}
+							</div>
+						</div>
+					</>
 				)}
 			</div>
 		</div>

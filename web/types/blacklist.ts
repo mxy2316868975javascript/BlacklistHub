@@ -487,12 +487,28 @@ export const REGION_LABELS: Record<Region, string> = {
 	weifang: "潍坊市",
 	zibo: "淄博市",
 	weihai: "威海市",
+	jining: "济宁市",
+	taian: "泰安市",
+	linyi: "临沂市",
+	dezhou: "德州市",
+	liaocheng: "聊城市",
+	binzhou: "滨州市",
+	dongying: "东营市",
+	zaozhuang: "枣庄市",
+	rizhao: "日照市",
+	laiwu: "莱芜市",
+	heze: "菏泽市",
 	// 河北省
 	shijiazhuang: "石家庄市",
 	tangshan: "唐山市",
 	baoding: "保定市",
 	langfang: "廊坊市",
 	cangzhou: "沧州市",
+	handan: "邯郸市",
+	xingtai: "邢台市",
+	zhangjiakou: "张家口市",
+	chengde: "承德市",
+	hengshui: "衡水市",
 	// 河南省
 	zhengzhou: "郑州市",
 	luoyang: "洛阳市",
@@ -539,14 +555,40 @@ export const REGION_LABELS: Record<Region, string> = {
 	dalian: "大连市",
 	anshan: "鞍山市",
 	fushun: "抚顺市",
+	benxi: "本溪市",
+	dandong: "丹东市",
+	jinzhou: "锦州市",
+	yingkou: "营口市",
+	fuxin: "阜新市",
+	liaoyang: "辽阳市",
+	panjin: "盘锦市",
+	tieling: "铁岭市",
+	chaoyang: "朝阳市",
+	huludao: "葫芦岛市",
 	// 吉林省
 	changchun: "长春市",
 	jilin: "吉林市",
 	siping: "四平市",
+	liaoyuan: "辽源市",
+	tonghua: "通化市",
+	baishan: "白山市",
+	songyuan: "松原市",
+	baicheng: "白城市",
+	yanbian: "延边朝鲜族自治州",
 	// 黑龙江省
 	harbin: "哈尔滨市",
 	daqing: "大庆市",
 	qiqihar: "齐齐哈尔市",
+	jiamusi: "佳木斯市",
+	mudanjiang: "牡丹江市",
+	jixi: "鸡西市",
+	shuangyashan: "双鸭山市",
+	yichun: "伊春市",
+	qitaihe: "七台河市",
+	hegang: "鹤岗市",
+	heihe: "黑河市",
+	suihua: "绥化市",
+	daxinganling: "大兴安岭地区",
 	// 内蒙古自治区
 	hohhot: "呼和浩特市",
 	baotou: "包头市",
@@ -947,6 +989,14 @@ export const REGION_OPTIONS = [
 		],
 	},
 ];
+
+// 扁平化的地区选项（用于简单的Select组件）
+export const REGION_OPTIONS_FLAT = Object.entries(REGION_LABELS).map(
+	([value, label]) => ({
+		label,
+		value: value as Region,
+	}),
+);
 
 // 类型选项
 export const TYPE_OPTIONS: Array<{ label: string; value: BlacklistType }> = [

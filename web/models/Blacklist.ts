@@ -66,147 +66,10 @@ const BlacklistSchema = new Schema(
 		}, // 最初来源
 		region: {
 			type: String,
-			enum: [
-				// 直辖市
-				"beijing",
-				"shanghai",
-				"tianjin",
-				"chongqing",
-				// 广东省
-				"guangzhou",
-				"shenzhen",
-				"dongguan",
-				"foshan",
-				"zhuhai",
-				"zhongshan",
-				"huizhou",
-				"jiangmen",
-				// 江苏省
-				"nanjing",
-				"suzhou",
-				"wuxi",
-				"changzhou",
-				"nantong",
-				"xuzhou",
-				"yangzhou",
-				// 浙江省
-				"hangzhou",
-				"ningbo",
-				"wenzhou",
-				"jiaxing",
-				"huzhou",
-				"shaoxing",
-				// 山东省
-				"jinan",
-				"qingdao",
-				"yantai",
-				"weifang",
-				"zibo",
-				"weihai",
-				// 河北省
-				"shijiazhuang",
-				"tangshan",
-				"baoding",
-				"langfang",
-				"cangzhou",
-				// 河南省
-				"zhengzhou",
-				"luoyang",
-				"kaifeng",
-				"anyang",
-				"xinxiang",
-				// 湖北省
-				"wuhan",
-				"yichang",
-				"xiangyang",
-				"jingzhou",
-				// 湖南省
-				"changsha",
-				"zhuzhou",
-				"xiangtan",
-				"hengyang",
-				// 四川省
-				"chengdu",
-				"mianyang",
-				"deyang",
-				"nanchong",
-				// 陕西省
-				"xian",
-				"baoji",
-				"xianyang",
-				"weinan",
-				// 福建省
-				"fuzhou",
-				"xiamen",
-				"quanzhou",
-				"zhangzhou",
-				// 安徽省
-				"hefei",
-				"wuhu",
-				"bengbu",
-				"anqing",
-				// 江西省
-				"nanchang",
-				"ganzhou",
-				"jiujiang",
-				"shangrao",
-				// 辽宁省
-				"shenyang",
-				"dalian",
-				"anshan",
-				"fushun",
-				// 吉林省
-				"changchun",
-				"jilin",
-				"siping",
-				// 黑龙江省
-				"harbin",
-				"daqing",
-				"qiqihar",
-				// 内蒙古自治区
-				"hohhot",
-				"baotou",
-				"ordos",
-				// 广西壮族自治区
-				"nanning",
-				"liuzhou",
-				"guilin",
-				// 云南省
-				"kunming",
-				"qujing",
-				"yuxi",
-				// 贵州省
-				"guiyang",
-				"zunyi",
-				// 山西省
-				"taiyuan",
-				"datong",
-				"changzhi",
-				// 甘肃省
-				"lanzhou",
-				"tianshui",
-				// 青海省
-				"xining",
-				// 宁夏回族自治区
-				"yinchuan",
-				// 新疆维吾尔自治区
-				"urumqi",
-				"karamay",
-				// 西藏自治区
-				"lhasa",
-				// 海南省
-				"haikou",
-				"sanya",
-				// 特别行政区
-				"hongkong",
-				"macau",
-				// 台湾省
-				"taipei",
-				"kaohsiung",
-				"taichung",
-				// 其他
-				"other",
-			],
+			required: false, // 地区字段是可选的
+			default: null,
+			// 移除 enum 限制，允许任何字符串值
+			// 这样可以支持所有在 Region 类型中定义的地区
 			index: true,
 		}, // 地区
 		sources: { type: [String], default: [] }, // 多来源合并
@@ -227,6 +90,7 @@ const BlacklistSchema = new Schema(
 
 // Update updated_at automatically
 BlacklistSchema.pre("save", function (next) {
+	// biome-ignore lint/suspicious/noExplicitAny: mongoose document typing
 	(this as any).updated_at = new Date();
 	next();
 });

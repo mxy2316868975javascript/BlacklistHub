@@ -13,7 +13,8 @@
 
 	"editor.codeActionsOnSave": {
 		"source.organizeImports.biome": "explicit",
-		"source.fixAll.biome": "explicit"
+		"source.fixAll.biome": "explicit",
+		"quickfix.biome": "explicit"
 	},
 	"files.autoSave": "afterDelay",
 	"files.autoSaveDelay": 300

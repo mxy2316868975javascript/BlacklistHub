@@ -123,33 +123,15 @@ export default function SearchPage() {
 			// 保存搜索历史
 			saveSearchHistory(query);
 
-			// 这里应该调用实际的搜索API
-			// const response = await fetch(`/api/guest/search?q=${encodeURIComponent(query)}`);
+			// 调用真实的搜索API
+			const response = await fetch(`/api/guest/search?q=${encodeURIComponent(query)}&limit=20`);
 
-			// 模拟搜索结果
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			if (!response.ok) {
+				throw new Error(`Search failed: ${response.status}`);
+			}
 
-			const mockResults: SearchResult[] = Array.from(
-				{ length: Math.floor(Math.random() * 8) + 2 },
-				(_, index) => ({
-					id: `result-${index}`,
-					type: ["Person", "Company", "Organization"][
-						Math.floor(Math.random() * 3)
-					],
-					value: `${query.slice(0, 2)}***${query.slice(-2)}`,
-					riskLevel: ["low", "medium", "high"][Math.floor(Math.random() * 3)] as
-						| "low"
-						| "medium"
-						| "high",
-					reasonCode: `CREDIT_${Math.floor(Math.random() * 100)}`,
-					createdAt: new Date(
-						Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-					).toISOString(),
-					matchScore: Math.floor(Math.random() * 40) + 60,
-				}),
-			);
-
-			setResults(mockResults);
+			const data = await response.json();
+			setResults(data.results || []);
 		} catch (error) {
 			console.error("Search failed:", error);
 			setResults([]);
@@ -320,18 +302,20 @@ export default function SearchPage() {
 													<div className="flex items-center gap-2">
 														<Tag
 															color={
-																item.type === "Person"
+																item.type === "person"
 																	? "blue"
-																	: item.type === "Company"
+																	: item.type === "company"
 																		? "green"
 																		: "orange"
 															}
 														>
-															{item.type === "Person"
+															{item.type === "person"
 																? "个人"
-																: item.type === "Company"
+																: item.type === "company"
 																	? "企业"
-																	: "组织"}
+																	: item.type === "organization"
+																		? "组织"
+																		: "其他"}
 														</Tag>
 														<Text code={true} className="text-sm">
 															{item.value}

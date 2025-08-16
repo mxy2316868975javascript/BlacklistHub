@@ -95,7 +95,7 @@ export default function GuestHomePage({
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
 			{/* 英雄区域 */}
-			<section className="relative py-20 px-4">
+			<section className="relative py-8 px-4">
 				<div className="max-w-6xl mx-auto text-center">
 					{/* 品牌标识 */}
 					<div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl mb-8 shadow-2xl">
@@ -153,7 +153,7 @@ export default function GuestHomePage({
 			</section>
 
 			{/* 快速搜索区域 */}
-			<section className="py-16 px-4 bg-white/50">
+			<section className="px-4 bg-white/50">
 				<div className="max-w-4xl mx-auto">
 					<div className="text-center mb-8">
 						<Title level={3} className="!mb-4">
@@ -188,7 +188,7 @@ export default function GuestHomePage({
 								<Button
 									type="primary"
 									icon={<SearchOutlined />}
-									size="small"
+									size="large"
 									disabled={isLimitReached("search")}
 									className="bg-gradient-to-r from-blue-500 to-purple-600 border-none"
 								>
@@ -205,7 +205,7 @@ export default function GuestHomePage({
 			</section>
 
 			{/* 平台统计 */}
-			<section className="py-16 px-4">
+			<section className="py-8 px-4">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center mb-12">
 						<Title level={3} className="!mb-4">
@@ -263,7 +263,7 @@ export default function GuestHomePage({
 			</section>
 
 			{/* 最新黑名单 */}
-			<section className="py-16 px-4 bg-gray-50">
+			<section className="py-8 px-4 bg-gray-50">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center mb-12">
 						<Title level={3} className="!mb-4">
@@ -275,47 +275,59 @@ export default function GuestHomePage({
 					</div>
 
 					<Row gutter={[16, 16]}>
-						{recentBlacklist.map((item) => (
-							<Col xs={24} sm={12} lg={8} key={item.id}>
-								<Card
-									size="small"
-									className="hover:shadow-md transition-shadow cursor-pointer"
-									onClick={() => router.push(`/blacklist/public/${item.id}`)}
-								>
-									<div className="flex items-center justify-between mb-2">
-										<Tag color="blue">
-											{item.type === "Person"
-												? "个人"
-												: item.type === "Company"
-													? "企业"
-													: "组织"}
-										</Tag>
-										<Tag
-											color={
-												item.riskLevel === "high"
-													? "red"
+						{recentBlacklist.length > 0 ? (
+							recentBlacklist.map((item) => (
+								<Col xs={24} sm={12} lg={8} key={item.id}>
+									<Card
+										size="small"
+										className="hover:shadow-md transition-shadow cursor-pointer"
+										onClick={() => router.push(`/blacklist/public/${item.id}`)}
+									>
+										<div className="flex items-center justify-between mb-2">
+											<Tag color="blue">
+												{item.type === "person"
+													? "个人"
+													: item.type === "company"
+														? "企业"
+														: item.type === "organization"
+															? "组织"
+															: "其他"}
+											</Tag>
+											<Tag
+												color={
+													item.riskLevel === "high"
+														? "red"
+														: item.riskLevel === "medium"
+															? "orange"
+															: "green"
+												}
+											>
+												{item.riskLevel === "high"
+													? "严重失信"
 													: item.riskLevel === "medium"
-														? "orange"
-														: "green"
-											}
-										>
-											{item.riskLevel === "high"
-												? "严重失信"
-												: item.riskLevel === "medium"
-													? "一般失信"
-													: "轻微失信"}
-										</Tag>
-									</div>
-									<div className="text-sm text-gray-600 mb-2 truncate">
-										{item.value}
-									</div>
-									<div className="flex items-center text-xs text-gray-400">
-										<ClockCircleOutlined className="mr-1" />
-										{new Date(item.createdAt).toLocaleDateString()}
-									</div>
-								</Card>
+														? "一般失信"
+														: "轻微失信"}
+											</Tag>
+										</div>
+										<div className="text-sm text-gray-600 mb-2 truncate">
+											{item.value}
+										</div>
+										<div className="flex items-center text-xs text-gray-400">
+											<ClockCircleOutlined className="mr-1" />
+											{new Date(item.createdAt).toLocaleDateString()}
+										</div>
+									</Card>
+								</Col>
+							))
+						) : (
+							<Col span={24}>
+								<div className="text-center py-8 text-gray-500">
+									<SafetyCertificateOutlined className="text-4xl mb-4 text-gray-300" />
+									<div>暂无公开失信记录</div>
+									<div className="text-sm mt-2">数据正在更新中，请稍后查看</div>
+								</div>
 							</Col>
-						))}
+						)}
 					</Row>
 
 					<div className="text-center mt-8">
@@ -329,51 +341,55 @@ export default function GuestHomePage({
 			</section>
 
 			{/* 功能特性 */}
-			<section className="py-16 px-4">
+			<section className="py-8 px-4">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center mb-12">
 						<Title level={3} className="!mb-4">
-							🚀 平台特性
+							💼 我们能为您做什么
 						</Title>
-						<Text className="text-gray-600">
-							专业的安全服务，为您的业务保驾护航
+						<Text className="text-gray-600 text-lg">
+							帮助您在商业决策中规避风险，保护资产安全
 						</Text>
 					</div>
 
 					<Row gutter={[24, 24]}>
 						<Col xs={24} sm={12} lg={6}>
-							<Card className="text-center h-full">
-								<div className="text-3xl mb-4">🛡️</div>
-								<Title level={4}>实时防护</Title>
+							<Card className="text-center h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100">
+								<div className="text-4xl mb-4">💰</div>
+								<Title level={4} className="!text-blue-700">避免经济损失</Title>
 								<Paragraph className="text-gray-600">
-									24/7实时监控，第一时间发现和阻止威胁
+									提前识别失信人员，避免<br/>
+									<strong className="text-blue-600">合作风险</strong>，保护您的资金安全
 								</Paragraph>
 							</Card>
 						</Col>
 						<Col xs={24} sm={12} lg={6}>
-							<Card className="text-center h-full">
-								<div className="text-3xl mb-4">🔍</div>
-								<Title level={4}>智能检测</Title>
+							<Card className="text-center h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100">
+								<div className="text-4xl mb-4">⏰</div>
+								<Title level={4} className="!text-green-700">节省时间成本</Title>
 								<Paragraph className="text-gray-600">
-									AI驱动的威胁检测，准确识别各类安全风险
+									<strong className="text-green-600">快速查询</strong>替代繁琐调查<br/>
+									让您专注核心业务发展
 								</Paragraph>
 							</Card>
 						</Col>
 						<Col xs={24} sm={12} lg={6}>
-							<Card className="text-center h-full">
-								<div className="text-3xl mb-4">👥</div>
-								<Title level={4}>社区协作</Title>
+							<Card className="text-center h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100">
+								<div className="text-4xl mb-4">🎯</div>
+								<Title level={4} className="!text-purple-700">提升决策质量</Title>
 								<Paragraph className="text-gray-600">
-									全球安全专家共同维护，数据质量有保障
+									基于真实信用记录，做出<br/>
+									<strong className="text-purple-600">更明智的商业决策</strong>
 								</Paragraph>
 							</Card>
 						</Col>
 						<Col xs={24} sm={12} lg={6}>
-							<Card className="text-center h-full">
-								<div className="text-3xl mb-4">⚡</div>
-								<Title level={4}>快速响应</Title>
+							<Card className="text-center h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100">
+								<div className="text-4xl mb-4">🛡️</div>
+								<Title level={4} className="!text-orange-700">降低法律风险</Title>
 								<Paragraph className="text-gray-600">
-									毫秒级查询响应，不影响您的业务流程
+									了解合作方信用状况<br/>
+									<strong className="text-orange-600">减少纠纷和诉讼</strong>风险
 								</Paragraph>
 							</Card>
 						</Col>
@@ -396,15 +412,19 @@ export default function GuestHomePage({
 					background: transparent;
 					border: none;
 				}
-				
+
 				.guest-search-input .ant-input {
 					border-radius: 12px 0 0 12px;
 					border-right: none;
+					height: 48px;
 				}
-				
+
 				.guest-search-input .ant-btn {
 					border-radius: 0 12px 12px 0;
-					height: 48px;
+					height: 48px !important;
+					display: flex;
+					align-items: center;
+					justify-content: center;
 				}
 			`}</style>
 		</div>

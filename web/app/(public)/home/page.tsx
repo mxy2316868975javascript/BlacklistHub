@@ -1,5 +1,6 @@
 "use client";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
+import { useEffect, useState } from "react";
 
 import GuestHomePage from "@/components/guest/GuestHomePage";
 
@@ -10,43 +11,82 @@ import RankingSidebar from "./RankingSidebar";
 import ReasonsTicker from "./ReasonsTicker";
 import SearchCard from "./SearchCard";
 
-// 模拟公开统计数据
-const mockPublicStats = {
-	totalBlacklist: 125000,
-	publishedCount: 98500,
-	monthlyGrowth: 12.5,
-	activeContributors: 1250,
-};
+interface PublicStats {
+	totalBlacklist: number;
+	publishedCount: number;
+	monthlyGrowth: number;
+	activeContributors: number;
+}
 
-// 模拟最新公开黑名单
-const mockRecentBlacklist = [
-	{
-		id: "1",
-		type: "IP",
-		value: "192.168.***.***",
-		riskLevel: "high",
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "2",
-		type: "Email",
-		value: "spam***@example.com",
-		riskLevel: "medium",
-		createdAt: new Date().toISOString(),
-	},
-	{
-		id: "3",
-		type: "Domain",
-		value: "malicious***.com",
-		riskLevel: "high",
-		createdAt: new Date().toISOString(),
-	},
-];
+interface PublicBlacklistItem {
+	id: string;
+	type: string;
+	value: string;
+	riskLevel: string;
+	createdAt: string;
+}
 
 export default function HomePublicPage() {
 	const { isGuest, loading } = useAuth();
+	const [publicStats, setPublicStats] = useState<PublicStats | null>(null);
+	const [recentBlacklist, setRecentBlacklist] = useState<PublicBlacklistItem[]>([]);
+	const [dataLoading, setDataLoading] = useState(false);
 
-	if (loading) {
+	// 获取公开统计数据
+	const fetchPublicStats = async () => {
+		try {
+			const response = await fetch('/api/guest/stats?type=overview');
+			if (!response.ok) {
+				throw new Error('Failed to fetch stats');
+			}
+			const data = await response.json();
+			setPublicStats({
+				totalBlacklist: data.totalBlacklist,
+				publishedCount: data.publishedCount,
+				monthlyGrowth: data.monthlyGrowth,
+				activeContributors: data.activeContributors,
+			});
+		} catch (error) {
+			console.error('Error fetching public stats:', error);
+			// 使用默认数据作为后备
+			setPublicStats({
+				totalBlacklist: 0,
+				publishedCount: 0,
+				monthlyGrowth: 0,
+				activeContributors: 0,
+			});
+		}
+	};
+
+	// 获取最新公开黑名单
+	const fetchRecentBlacklist = async () => {
+		try {
+			const response = await fetch('/api/guest/blacklist/public?page=1&pageSize=6');
+			if (!response.ok) {
+				throw new Error('Failed to fetch blacklist');
+			}
+			const data = await response.json();
+			setRecentBlacklist(data.data || []);
+		} catch (error) {
+			console.error('Error fetching recent blacklist:', error);
+			setRecentBlacklist([]);
+		}
+	};
+
+	// 游客模式时获取数据
+	useEffect(() => {
+		if (isGuest && !loading) {
+			setDataLoading(true);
+			Promise.all([
+				fetchPublicStats(),
+				fetchRecentBlacklist(),
+			]).finally(() => {
+				setDataLoading(false);
+			});
+		}
+	}, [isGuest, loading]);
+
+	if (loading || (isGuest && dataLoading)) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<Spin size="large" />
@@ -58,8 +98,13 @@ export default function HomePublicPage() {
 	if (isGuest) {
 		return (
 			<GuestHomePage
-				publicStats={mockPublicStats}
-				recentBlacklist={mockRecentBlacklist}
+				publicStats={publicStats || {
+					totalBlacklist: 0,
+					publishedCount: 0,
+					monthlyGrowth: 0,
+					activeContributors: 0,
+				}}
+				recentBlacklist={recentBlacklist}
 			/>
 		);
 	}

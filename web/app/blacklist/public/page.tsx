@@ -61,40 +61,42 @@ export default function PublicBlacklistPage() {
 	const loadData = useCallback(async () => {
 		setLoading(true);
 		try {
-			// 这里应该调用实际的API
-			// const response = await fetch('/api/guest/blacklist/public');
+			// 构建查询参数
+			const params = new URLSearchParams({
+				page: currentPage.toString(),
+				pageSize: pageSize.toString(),
+			});
 
-			// 模拟数据
-			const mockData: PublicBlacklistItem[] = Array.from(
-				{ length: pageSize },
-				(_, index) => ({
-					id: `${currentPage}-${index + 1}`,
-					type: ["Person", "Company", "Organization"][
-						Math.floor(Math.random() * 3)
-					],
-					value: `张**${index + 1}`, // 已脱敏
-					riskLevel: ["low", "medium", "high"][Math.floor(Math.random() * 3)] as
-						| "low"
-						| "medium"
-						| "high",
-					reasonCode: `CREDIT_${Math.floor(Math.random() * 100)}`,
-					createdAt: new Date(
-						Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-					).toISOString(),
-					status: "published" as const,
-				}),
-			);
+			if (searchText) {
+				params.append('search', searchText);
+			}
+			if (typeFilter) {
+				params.append('type', typeFilter);
+			}
+			if (riskFilter) {
+				params.append('riskLevel', riskFilter);
+			}
 
-			setData(mockData);
-			setTotal(1000); // 模拟总数
+			// 调用真实的API
+			const response = await fetch(`/api/guest/blacklist/public?${params.toString()}`);
+
+			if (!response.ok) {
+				throw new Error(`Failed to fetch data: ${response.status}`);
+			}
+
+			const result = await response.json();
+			setData(result.data || []);
+			setTotal(result.pagination?.total || 0);
 		} catch (error) {
 			console.error("Failed to load blacklist data:", error);
+			setData([]);
+			setTotal(0);
 		} finally {
 			setLoading(false);
 		}
-	}, [currentPage, pageSize]);
+	}, [currentPage, pageSize, searchText, typeFilter, riskFilter]);
 
-	// 模拟数据加载
+	// 数据加载
 	useEffect(() => {
 		loadData();
 	}, [loadData]);
@@ -140,10 +142,10 @@ export default function PublicBlacklistPage() {
 			render: (type: string) => (
 				<Tag
 					color={
-						type === "Person" ? "blue" : type === "Company" ? "green" : "orange"
+						type === "person" ? "blue" : type === "company" ? "green" : "orange"
 					}
 				>
-					{type === "Person" ? "个人" : type === "Company" ? "企业" : "组织"}
+					{type === "person" ? "个人" : type === "company" ? "企业" : type === "organization" ? "组织" : "其他"}
 				</Tag>
 			),
 		},
@@ -259,9 +261,10 @@ export default function PublicBlacklistPage() {
 								onChange={setTypeFilter}
 								className="w-32"
 								options={[
-									{ label: "个人", value: "Person" },
-									{ label: "企业", value: "Company" },
-									{ label: "组织", value: "Organization" },
+									{ label: "个人", value: "person" },
+									{ label: "企业", value: "company" },
+									{ label: "组织", value: "organization" },
+									{ label: "其他", value: "other" },
 								]}
 							/>
 							<Select

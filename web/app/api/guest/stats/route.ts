@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blacklist from "@/models/Blacklist";
+import User from "@/models/User";
 
 // 公开统计数据类型
 interface PublicStats {
 	totalBlacklist: number;
 	publishedCount: number;
-	monthlyGrowth: number;
-	activeContributors: number;
+	totalUsers: number;
 	typeDistribution: {
 		[key: string]: number;
 	};
@@ -39,6 +39,7 @@ async function getRealStats(): Promise<PublicStats> {
 	const [
 		totalBlacklist,
 		publishedCount,
+		totalUsers,
 		typeDistribution,
 		riskLevelDistribution,
 		recentActivity,
@@ -53,6 +54,9 @@ async function getRealStats(): Promise<PublicStats> {
 			visibility: "public",
 			expires_at: { $gt: now },
 		}),
+
+		// 用户总数
+		User.countDocuments({}),
 
 		// 类型分布统计
 		Blacklist.aggregate([
@@ -185,34 +189,12 @@ async function getRealStats(): Promise<PublicStats> {
 		description: reasonCodeLabels[item._id] || item._id,
 	}));
 
-	// 计算月增长率
-	const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-	const [currentMonthCount, lastMonthCount] = await Promise.all([
-		Blacklist.countDocuments({
-			status: "published",
-			visibility: "public",
-			created_at: { $gte: lastMonth },
-		}),
-		Blacklist.countDocuments({
-			status: "published",
-			visibility: "public",
-			created_at: {
-				$gte: new Date(lastMonth.getTime() - 30 * 24 * 60 * 60 * 1000),
-				$lt: lastMonth,
-			},
-		}),
-	]);
 
-	const monthlyGrowth =
-		lastMonthCount > 0
-			? ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100
-			: 0;
 
 	return {
 		totalBlacklist,
 		publishedCount,
-		monthlyGrowth: Math.round(monthlyGrowth * 10) / 10,
-		activeContributors: 1247, // 这个可以后续从用户表统计
+		totalUsers,
 		typeDistribution: typeDistributionObj,
 		riskLevelDistribution: riskDistributionObj,
 		recentActivity: recentActivityArray,
@@ -260,8 +242,7 @@ export async function GET(request: NextRequest) {
 				response = {
 					totalBlacklist: stats.totalBlacklist,
 					publishedCount: stats.publishedCount,
-					monthlyGrowth: stats.monthlyGrowth,
-					activeContributors: stats.activeContributors,
+					totalUsers: stats.totalUsers,
 					lastUpdated: new Date().toISOString(),
 				};
 				break;
@@ -285,9 +266,9 @@ export async function GET(request: NextRequest) {
 			case "trends":
 				// 游客模式只提供基础趋势数据
 				response = {
-					monthlyGrowth: stats.monthlyGrowth,
-					weeklyGrowth: Math.floor(stats.monthlyGrowth / 4),
-					trend: stats.monthlyGrowth > 0 ? "increasing" : "decreasing",
+					totalUsers: stats.totalUsers,
+					totalBlacklist: stats.totalBlacklist,
+					trend: "stable",
 					lastUpdated: new Date().toISOString(),
 				};
 				break;

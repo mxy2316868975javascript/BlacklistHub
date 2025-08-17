@@ -20,6 +20,12 @@ export async function POST(req: NextRequest) {
 	const ok = await bcrypt.compare(password, user.password_hash);
 	if (!ok) return NextResponse.json({ message: "密码错误" }, { status: 400 });
 
+	// 更新最后登录时间
+	await User.findByIdAndUpdate(user._id, {
+		last_login: new Date(),
+		updated_at: new Date()
+	});
+
 	const token = signToken({
 		uid: user._id,
 		username: user.username,

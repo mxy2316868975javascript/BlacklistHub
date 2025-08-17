@@ -1,6 +1,5 @@
 "use client";
 import {
-	BarChartOutlined,
 	CheckCircleOutlined,
 	ClockCircleOutlined,
 	EyeOutlined,
@@ -24,7 +23,7 @@ import {
 } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGuestSession } from "@/hooks/useGuestSession";
 import { SearchLimitationBanner } from "./FeatureLimitation";
 import { RegistrationGuide } from "./RegistrationGuide";
@@ -35,8 +34,7 @@ const { Search } = Input;
 interface PublicStats {
 	totalBlacklist: number;
 	publishedCount: number;
-	monthlyGrowth: number;
-	activeContributors: number;
+	totalUsers: number;
 }
 
 interface PublicBlacklistItem {
@@ -63,6 +61,8 @@ export default function GuestHomePage({
 	const [searchValue, setSearchValue] = useState("");
 
 	const remainingSearches = getRemainingCount("search");
+
+
 
 	const handleSearch = (value: string) => {
 		if (!value.trim()) return;
@@ -240,19 +240,8 @@ export default function GuestHomePage({
 						<Col xs={12} sm={6}>
 							<Card className="text-center hover:shadow-lg transition-shadow">
 								<Statistic
-									title="月度增长"
-									value={publicStats.monthlyGrowth}
-									suffix="%"
-									prefix={<BarChartOutlined />}
-									valueStyle={{ color: "#fa8c16" }}
-								/>
-							</Card>
-						</Col>
-						<Col xs={12} sm={6}>
-							<Card className="text-center hover:shadow-lg transition-shadow">
-								<Statistic
-									title="活跃贡献者"
-									value={publicStats.activeContributors}
+									title="注册用户"
+									value={publicStats.totalUsers}
 									prefix={<TeamOutlined />}
 									valueStyle={{ color: "#722ed1" }}
 								/>

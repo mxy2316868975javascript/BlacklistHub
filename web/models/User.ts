@@ -12,6 +12,9 @@ const UserSchema = new Schema(
 			default: "reporter" as UserRole,
 			index: true,
 		},
+		created_at: { type: Date, default: () => new Date(), index: true },
+		updated_at: { type: Date, default: () => new Date() },
+		last_login: { type: Date },
 	},
 	{ versionKey: false },
 );

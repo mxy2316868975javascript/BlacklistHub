@@ -24,3 +24,46 @@ body {
 	color: var(--foreground);
 	font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 响应式导航栏优化 */
+@media (max-width: 768px) {
+	.nav-mobile-optimized {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+}
+
+/* 平滑过渡效果 */
+.nav-transition {
+	transition: all 0.2s ease-in-out;
+}
+
+/* 移动端菜单按钮优化 */
+.mobile-menu-btn {
+	@apply p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200;
+}
+
+/* 桌面端菜单项优化 */
+.desktop-nav-item {
+	@apply relative overflow-hidden;
+}
+
+.desktop-nav-item::before {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: 0;
+	height: 2px;
+	background-color: #3b82f6;
+	transition: all 0.3s ease;
+	transform: translateX(-50%);
+}
+
+.desktop-nav-item:hover::before {
+	width: 100%;
+}
+
+.desktop-nav-item.active::before {
+	width: 100%;
+}

@@ -4,6 +4,7 @@ import {
 	CloseCircleOutlined,
 	EyeOutlined,
 	HistoryOutlined,
+	InfoCircleOutlined,
 	SearchOutlined,
 	WarningOutlined,
 } from "@ant-design/icons";
@@ -12,19 +13,21 @@ import {
 	Button,
 	Card,
 	Divider,
+	Input,
+	List,
 	message,
 	Select,
+	Space,
 	Tag,
+	Tooltip,
 	Typography,
 } from "antd";
 import axios from "axios";
 import Link from "next/link";
 import React from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { QuickSearchInput } from "@/components/SearchInput";
-import type { UserRole } from "@/types/user";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
+const { Search } = Input;
 
 interface QuickLookupResult {
 	hit: boolean;
@@ -42,26 +45,25 @@ interface QuickLookupResult {
 	}>;
 }
 
-// 移除SearchSuggestion接口，现在由SearchInput组件处理
+interface SearchSuggestion {
+	value: string;
+	type: string;
+	count: number;
+}
 
-export default function QuickLookup() {
-	const { user } = useAuth();
+export default function EnhancedQuickLookup() {
 	const [type, setType] = React.useState<"person" | "company" | "organization">("person");
 	const [value, setValue] = React.useState("");
 	const [result, setResult] = React.useState<QuickLookupResult | null>(null);
 	const [loading, setLoading] = React.useState(false);
 	const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
-	// 移除suggestions state，现在由QuickSearchInput组件内部处理
+	const [suggestions, setSuggestions] = React.useState<SearchSuggestion[]>([]);
 
 	// 加载搜索历史
 	React.useEffect(() => {
 		const history = localStorage.getItem("quick_lookup_history");
 		if (history) {
-			try {
-				setSearchHistory(JSON.parse(history).slice(0, 5));
-			} catch (error) {
-				console.error("Failed to load search history:", error);
-			}
+			setSearchHistory(JSON.parse(history).slice(0, 5));
 		}
 	}, []);
 
@@ -72,7 +74,22 @@ export default function QuickLookup() {
 		localStorage.setItem("quick_lookup_history", JSON.stringify(newHistory));
 	};
 
-	// 移除旧的搜索建议逻辑，现在由QuickSearchInput组件处理
+	// 获取搜索建议
+	const getSuggestions = async (query: string) => {
+		if (query.length < 2) {
+			setSuggestions([]);
+			return;
+		}
+
+		try {
+			const response = await axios.get("/api/blacklist/suggestions", {
+				params: { q: query, type, limit: 5 }
+			});
+			setSuggestions(response.data.suggestions || []);
+		} catch (error) {
+			setSuggestions([]);
+		}
+	};
 
 	// 执行查询
 	const performLookup = async (searchValue?: string) => {
@@ -83,42 +100,20 @@ export default function QuickLookup() {
 
 		setLoading(true);
 		try {
-			// 先尝试增强版API，如果失败则回退到原版API
-			let response;
-			try {
-				response = await axios.get("/api/blacklist/enhanced-lookup", {
-					params: { type, value: queryValue, detailed: true }
-				});
-			} catch (enhancedError) {
-				// 回退到原版API
-				response = await axios.get("/api/blacklist/lookup", {
-					params: { type, value: queryValue }
-				});
-			}
-
+			// 增强版API调用
+			const response = await axios.get("/api/blacklist/enhanced-lookup", {
+				params: { type, value: queryValue, detailed: true }
+			});
+			
 			setResult(response.data);
 			saveToHistory(queryValue);
-			// 移除setSuggestions调用，现在由QuickSearchInput组件处理
+			setSuggestions([]);
 		} catch (error) {
 			message.error("查询失败，请稍后重试");
 			console.error("Lookup failed:", error);
 		} finally {
 			setLoading(false);
 		}
-	};
-
-	// 根据用户权限决定详情页面URL
-	const getDetailUrl = (recordId: string) => {
-		// 检查用户是否有编辑权限（与黑名单详情页面逻辑一致）
-		if (user?.role) {
-			const highPrivilegedRoles = ["reviewer", "admin", "super_admin"];
-			const isHighPrivileged = highPrivilegedRoles.includes(user.role as UserRole);
-
-			if (isHighPrivileged) {
-				return `/blacklist/${recordId}`;  // 管理员可编辑页面
-			}
-		}
-		return `/blacklist/public/${recordId}`;  // 公共只读页面
 	};
 
 	// 渲染风险等级标签
@@ -129,7 +124,7 @@ export default function QuickLookup() {
 			low: { color: "success", icon: <CheckCircleOutlined />, text: "低风险" }
 		};
 		const { color, icon, text } = config[level as keyof typeof config] || config.low;
-
+		
 		return (
 			<Tag color={color} icon={icon}>
 				{text}
@@ -171,7 +166,7 @@ export default function QuickLookup() {
 								<div>
 									<Text type="secondary">更新时间：</Text>
 									<Text>
-										{result.updated_at
+										{result.updated_at 
 											? new Date(result.updated_at).toLocaleDateString()
 											: "未知"
 										}
@@ -191,7 +186,7 @@ export default function QuickLookup() {
 									</Button>
 								</Link>
 								{result.records && result.records.length > 0 && (
-									<Link href={getDetailUrl(result.records[0].id)}>
+									<Link href={`/blacklist/public/${result.records[0].id}`}>
 										<Button size="small" type="primary" icon={<EyeOutlined />}>
 											查看详情
 										</Button>
@@ -216,12 +211,11 @@ export default function QuickLookup() {
 	};
 
 	return (
-		<Card title="🔍 快速查验" className="w-full !mb-6">
+		<Card title="🔍 快速查验" className="w-full">
 			<div className="space-y-4">
 				{/* 查询输入 */}
 				<div className="flex gap-2">
 					<Select
-						size="large"
 						value={type}
 						onChange={setType}
 						style={{ width: 120 }}
@@ -231,18 +225,40 @@ export default function QuickLookup() {
 							{ label: "组织", value: "organization" },
 						]}
 					/>
-					<div className="flex-1">
-						<QuickSearchInput
-							value={value}
-							onChange={setValue}
-							onSearch={performLookup}
-							type={type}
-							placeholder={`输入${type === 'person' ? '姓名或身份证' : type === 'company' ? '企业名称' : '组织名称'}`}
-							size="large"
-							style={{ width: '100%' }}
-						/>
-					</div>
+					<Search
+						value={value}
+						onChange={(e) => {
+							setValue(e.target.value);
+							getSuggestions(e.target.value);
+						}}
+						placeholder={`输入${type === 'person' ? '姓名或身份证' : type === 'company' ? '企业名称' : '组织名称'}`}
+						enterButton="查验"
+						loading={loading}
+						onSearch={performLookup}
+						allowClear
+					/>
 				</div>
+
+				{/* 搜索建议 */}
+				{suggestions.length > 0 && (
+					<Card size="small" className="bg-gray-50">
+						<Text type="secondary" className="text-xs">搜索建议：</Text>
+						<div className="flex flex-wrap gap-1 mt-1">
+							{suggestions.map((suggestion, index) => (
+								<Tag
+									key={index}
+									className="cursor-pointer"
+									onClick={() => {
+										setValue(suggestion.value);
+										performLookup(suggestion.value);
+									}}
+								>
+									{suggestion.value} ({suggestion.count})
+								</Tag>
+							))}
+						</div>
+					</Card>
+				)}
 
 				{/* 搜索历史 */}
 				{searchHistory.length > 0 && !loading && !result && (

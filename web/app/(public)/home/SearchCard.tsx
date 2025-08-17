@@ -4,6 +4,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebounce, useInputDebounce } from "@/hooks/useDebounce";
 import {
 	type BlacklistItem,
 	type BlacklistStatus,
@@ -121,10 +122,26 @@ export default function SearchCard() {
 		[form],
 	);
 
+	// 防抖的自动搜索函数
+	const debouncedAutoSearch = useDebounce(
+		useCallback(() => {
+			loadData(1, true);
+		}, [loadData]),
+		800 // 800ms延迟，避免频繁搜索
+	);
+
 	// 初始加载数据
 	useEffect(() => {
 		loadData(1, true);
 	}, [loadData]);
+
+	// 当表单变化时，触发防抖搜索（仅对关键词搜索启用自动搜索）
+	useEffect(() => {
+		// 只有当关键词不为空时才启用自动搜索
+		if (form.keyword.trim()) {
+			debouncedAutoSearch();
+		}
+	}, [form.keyword, debouncedAutoSearch]);
 
 	const search = async () => {
 		await loadData(1, true);
@@ -132,7 +149,7 @@ export default function SearchCard() {
 
 	return (
 		<div className="space-y-4">
-			<Card>
+			<Card className="!mb-6">
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
 					<Select
 						allowClear={true}
@@ -419,7 +436,7 @@ export default function SearchCard() {
 													<div className="text-xs text-blue-600 font-semibold mb-2 flex items-center gap-1">
 														💬 举报理由
 													</div>
-													<div className="text-sm text-blue-900 line-clamp-2 leading-relaxed">
+													<div className="text-left text-sm text-blue-900 line-clamp-2 leading-relaxed">
 														{i.reason}
 													</div>
 												</div>

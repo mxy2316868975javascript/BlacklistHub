@@ -48,8 +48,7 @@ export const GUEST_SYSTEM_CONFIG = {
 			stats: [
 				"totalBlacklist",
 				"publishedCount",
-				"monthlyGrowth",
-				"activeContributors",
+				"totalUsers",
 			],
 		},
 		maskedFields: ["value"],

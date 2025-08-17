@@ -2,6 +2,7 @@
 import {
 	EyeOutlined,
 	LoginOutlined,
+	MenuOutlined,
 	MoreOutlined,
 	SearchOutlined,
 	UserAddOutlined,
@@ -17,7 +18,7 @@ import { PERMISSIONS } from "@/types/user";
 import { RegistrationGuide } from "./guest/RegistrationGuide";
 import MobileMenu from "./MobileMenu";
 
-export default function NavClient() {
+export default function CompactNav() {
 	const pathname = usePathname();
 	const { user, isGuest, logout: authLogout } = useAuth();
 	const { session, getRemainingCount } = useGuestSession();
@@ -38,7 +39,7 @@ export default function NavClient() {
 	}, [pathname]);
 
 	const linkCls = (key: string) =>
-		`inline-flex items-center h-10 px-1 md:px-2 lg:px-3 text-xs md:text-sm font-medium no-underline border-b-2 transition-colors whitespace-nowrap ${
+		`inline-flex items-center h-10 px-2 text-sm font-medium no-underline border-b-2 transition-colors whitespace-nowrap ${
 			current === key
 				? "!text-neutral-900 border-blue-600"
 				: "!text-neutral-600 hover:!text-neutral-900 border-transparent hover:border-gray-200"
@@ -53,19 +54,56 @@ export default function NavClient() {
 		}
 	};
 
+	// 核心菜单项（始终显示）
+	const coreMenuItems = [
+		{ key: "search", href: "/search", label: "查询" },
+		{ key: "blacklist-public", href: "/blacklist/public", label: "名单" },
+		{ key: "help", href: "/help", label: "帮助" },
+	];
+
+	// 用户菜单项（下拉菜单中显示）
+	const userMenuItems = user ? [
+		{ key: "dashboard", href: "/dashboard", label: "仪表盘" },
+		{ key: "blacklist", href: "/blacklist", label: "管理失信" },
+		{ key: "new", href: "/blacklist/new", label: "举报失信" },
+		{ key: "defaulters", href: "/defaulters", label: "失信统计" },
+		{ key: "contributors", href: "/contributors", label: "贡献者" },
+		{ key: "rankings", href: "/rankings", label: "排名" },
+	] : [];
+
+	// 管理员菜单项
+	const adminMenuItems = (user?.role && PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(user.role as UserRole)) ? [
+		{ key: "users", href: "/users", label: "用户管理" },
+		{ key: "admin-users", href: "/admin/users", label: "角色管理" },
+	] : [];
+
+	// 构建更多菜单的下拉项
+	const moreMenuItems = [
+		...userMenuItems.map(item => ({
+			key: item.key,
+			label: <Link href={item.href}>{item.label}</Link>,
+		})),
+		...(adminMenuItems.length > 0 ? [
+			{ type: "divider" as const },
+			...adminMenuItems.map(item => ({
+				key: item.key,
+				label: <Link href={item.href}>{item.label}</Link>,
+			}))
+		] : [])
+	];
+
 	return (
 		<>
 			<header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-neutral-100">
 				<div className="px-4 sm:px-6 mx-auto h-14 flex items-center justify-between">
-					{/* Mobile Menu Button */}
+					{/* 左侧：移动菜单 + 品牌 */}
 					<div className="flex items-center gap-3">
 						<MobileMenu
 							onRegister={() => setShowRegistrationGuide(true)}
 							onLogin={() => window.location.href = "/login"}
 							onLogout={logout}
 						/>
-
-						{/* Brand */}
+						
 						<Link href="/" className="flex items-center gap-2">
 							<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold">
 								B
@@ -74,80 +112,32 @@ export default function NavClient() {
 								Blacklist Hub
 							</span>
 						</Link>
-
-						{/* 游客标签 - 移动端优化 */}
+						
 						{isGuest && (
-							<div className="relative">
-								<Tag color="orange" className="text-xs hidden sm:inline-block">
-									游客模式
-								</Tag>
-								<Tag color="orange" className="text-xs sm:hidden">
-									游客
-								</Tag>
-								<div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full" />
-							</div>
+							<Tag color="orange" className="text-xs hidden sm:inline-block">
+								游客
+							</Tag>
 						)}
 					</div>
 
-					{/* Desktop Nav - 极简版本 */}
-					<nav className="hidden md:flex items-center gap-1 flex-1 justify-center max-w-3xl mx-2">
-						{/* 核心功能 - 始终显示 */}
-						<Link href="/search" className={linkCls("search")} prefetch={false}>
-							查询
-						</Link>
-						<Link
-							href="/blacklist/public"
-							className={linkCls("blacklist-public")}
-							prefetch={false}
-						>
-							名单
-						</Link>
-						<Link href="/help" className={linkCls("help")} prefetch={false}>
-							帮助
-						</Link>
+					{/* 中间：桌面端导航 */}
+					<nav className="hidden md:flex items-center gap-1">
+						{/* 核心功能 */}
+						{coreMenuItems.map(item => (
+							<Link
+								key={item.key}
+								href={item.href}
+								className={linkCls(item.key)}
+								prefetch={false}
+							>
+								{item.label}
+							</Link>
+						))}
 
-						{/* 更多功能菜单 */}
-						{user && (
+						{/* 更多菜单 */}
+						{user && moreMenuItems.length > 0 && (
 							<Dropdown
-								menu={{
-									items: [
-										{
-											key: "dashboard",
-											label: <Link href="/dashboard">仪表盘</Link>,
-										},
-										{
-											key: "blacklist",
-											label: <Link href="/blacklist">管理失信</Link>,
-										},
-										{
-											key: "new",
-											label: <Link href="/blacklist/new">举报失信</Link>,
-										},
-										{
-											key: "defaulters",
-											label: <Link href="/defaulters">失信统计</Link>,
-										},
-										{
-											key: "contributors",
-											label: <Link href="/contributors">贡献者</Link>,
-										},
-										{
-											key: "rankings",
-											label: <Link href="/rankings">排名</Link>,
-										},
-										...(user?.role && PERMISSIONS.CAN_ACCESS_USER_MANAGEMENT(user.role as UserRole) ? [
-											{ type: "divider" as const },
-											{
-												key: "users",
-												label: <Link href="/users">用户管理</Link>,
-											},
-											{
-												key: "admin-users",
-												label: <Link href="/admin/users">角色管理</Link>,
-											},
-										] : []),
-									],
-								}}
+								menu={{ items: moreMenuItems }}
 								placement="bottomRight"
 								trigger={['click']}
 							>
@@ -162,29 +152,11 @@ export default function NavClient() {
 						)}
 					</nav>
 
-					{/* Actions */}
-					<div className="flex items-center gap-2 sm:gap-3">
-						{/* 游客状态显示 - 响应式优化 */}
+					{/* 右侧：用户信息 */}
+					<div className="flex items-center gap-2">
+						{/* 游客状态 */}
 						{isGuest && session && (
-							<div className="hidden lg:flex items-center gap-3 text-sm">
-								<div className="flex items-center gap-1">
-									<SearchOutlined className="text-blue-500" />
-									<span className="text-gray-600 text-xs">
-										{getRemainingCount("search")}/{session.limitations.maxSearchPerDay}
-									</span>
-								</div>
-								<div className="flex items-center gap-1">
-									<EyeOutlined className="text-green-500" />
-									<span className="text-gray-600 text-xs">
-										{getRemainingCount("view")}/{session.limitations.maxViewPerDay}
-									</span>
-								</div>
-							</div>
-						)}
-
-						{/* 移动端游客状态简化显示 */}
-						{isGuest && session && (
-							<div className="flex lg:hidden items-center gap-1 text-xs bg-gray-50 px-2 py-1 rounded">
+							<div className="hidden lg:flex items-center gap-2 text-xs bg-gray-50 px-2 py-1 rounded">
 								<SearchOutlined className="text-blue-500" />
 								<span className="text-gray-600">
 									{getRemainingCount("search")}/{session.limitations.maxSearchPerDay}
@@ -192,7 +164,7 @@ export default function NavClient() {
 							</div>
 						)}
 
-						{/* 用户菜单 - 桌面端简化版 */}
+						{/* 用户菜单 */}
 						<div className="hidden md:block">
 							<Dropdown
 								menu={{
@@ -209,13 +181,7 @@ export default function NavClient() {
 														<button
 															type="button"
 															onClick={logout}
-															onKeyDown={(e) => {
-																if (e.key === "Enter" || e.key === " ") {
-																	e.preventDefault();
-																	logout();
-																}
-															}}
-															className="border-none bg-transparent p-0 cursor-pointer text-inherit font-inherit"
+															className="border-none bg-transparent p-0 cursor-pointer text-inherit font-inherit w-full text-left"
 														>
 															退出登录
 														</button>
@@ -261,6 +227,7 @@ export default function NavClient() {
 					</div>
 				</div>
 			</header>
+			
 			<RegistrationGuide
 				open={showRegistrationGuide}
 				trigger="feature"

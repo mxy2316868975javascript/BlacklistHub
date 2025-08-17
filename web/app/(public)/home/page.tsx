@@ -14,8 +14,7 @@ import SearchCard from "./SearchCard";
 interface PublicStats {
 	totalBlacklist: number;
 	publishedCount: number;
-	monthlyGrowth: number;
-	activeContributors: number;
+	totalUsers: number;
 }
 
 interface PublicBlacklistItem {
@@ -43,8 +42,7 @@ export default function HomePublicPage() {
 			setPublicStats({
 				totalBlacklist: data.totalBlacklist,
 				publishedCount: data.publishedCount,
-				monthlyGrowth: data.monthlyGrowth,
-				activeContributors: data.activeContributors,
+				totalUsers: data.totalUsers,
 			});
 		} catch (error) {
 			console.error('Error fetching public stats:', error);
@@ -52,8 +50,7 @@ export default function HomePublicPage() {
 			setPublicStats({
 				totalBlacklist: 0,
 				publishedCount: 0,
-				monthlyGrowth: 0,
-				activeContributors: 0,
+				totalUsers: 0,
 			});
 		}
 	};
@@ -101,8 +98,7 @@ export default function HomePublicPage() {
 				publicStats={publicStats || {
 					totalBlacklist: 0,
 					publishedCount: 0,
-					monthlyGrowth: 0,
-					activeContributors: 0,
+					totalUsers: 0,
 				}}
 				recentBlacklist={recentBlacklist}
 			/>
@@ -125,7 +121,7 @@ export default function HomePublicPage() {
 				{/* 右侧 1/4 区域：榜单/统计 */}
 				<div className="lg:col-span-1 space-y-6">
 					<RankingSidebar />
-					<div>
+					<div className="mt-6">
 						<h3 className="text-sm text-neutral-500 mb-2">热门理由码</h3>
 						<ReasonsTicker />
 					</div>

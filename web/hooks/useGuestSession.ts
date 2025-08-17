@@ -153,8 +153,20 @@ export function useGuestSession(): UseGuestSessionReturn {
 	useEffect(() => {
 		const existingSession = loadGuestSession();
 		if (existingSession) {
-			setSession(existingSession);
-			saveGuestSession(existingSession); // 更新最后活动时间
+			// 检查会话是否有异常状态（比如计数器超过限制）
+			const hasAbnormalState =
+				existingSession.limitations.searchCount > existingSession.limitations.maxSearchPerDay ||
+				existingSession.limitations.viewCount > existingSession.limitations.maxViewPerDay;
+
+			if (hasAbnormalState) {
+				console.log("检测到异常的游客会话状态，创建新会话");
+				const newSession = createGuestSession();
+				setSession(newSession);
+				saveGuestSession(newSession);
+			} else {
+				setSession(existingSession);
+				saveGuestSession(existingSession); // 更新最后活动时间
+			}
 		} else {
 			const newSession = createGuestSession();
 			setSession(newSession);

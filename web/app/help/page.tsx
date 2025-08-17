@@ -27,7 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const { Title, Paragraph, Text } = Typography;
 
-export function HelpPage() {
+export default function HelpPage() {
 	const router = useRouter();
 	const { isGuest } = useAuth();
 	const [showRegistrationGuide, setShowRegistrationGuide] = useState(false);

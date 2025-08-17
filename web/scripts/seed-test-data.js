@@ -111,6 +111,20 @@ const BlacklistSchema = new mongoose.Schema({
 
 const Blacklist = mongoose.model('Blacklist', BlacklistSchema);
 
+// 用户模型定义
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password_hash: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ["reporter", "reviewer", "admin", "super_admin"],
+    default: "reporter",
+    index: true,
+  },
+}, { versionKey: false });
+
+const User = mongoose.model('User', UserSchema);
+
 // 测试数据
 const testData = [
   {
@@ -215,6 +229,35 @@ const testData = [
   }
 ];
 
+// 测试用户数据
+const testUsers = [
+  {
+    username: "admin",
+    password_hash: "$2b$10$example.hash.for.admin.user",
+    role: "admin"
+  },
+  {
+    username: "reviewer1",
+    password_hash: "$2b$10$example.hash.for.reviewer.user",
+    role: "reviewer"
+  },
+  {
+    username: "reporter1",
+    password_hash: "$2b$10$example.hash.for.reporter.user",
+    role: "reporter"
+  },
+  {
+    username: "reporter2",
+    password_hash: "$2b$10$example.hash.for.reporter2.user",
+    role: "reporter"
+  },
+  {
+    username: "reporter3",
+    password_hash: "$2b$10$example.hash.for.reporter3.user",
+    role: "reporter"
+  }
+];
+
 async function seedData() {
   try {
     console.log('连接数据库...');
@@ -224,16 +267,21 @@ async function seedData() {
     // 清除现有测试数据
     console.log('清除现有数据...');
     await Blacklist.deleteMany({});
+    await User.deleteMany({});
 
     // 插入测试数据
     console.log('插入测试数据...');
     await Blacklist.insertMany(testData);
-    
-    console.log(`成功插入 ${testData.length} 条测试数据`);
-    
+    await User.insertMany(testUsers);
+
+    console.log(`成功插入 ${testData.length} 条黑名单数据`);
+    console.log(`成功插入 ${testUsers.length} 条用户数据`);
+
     // 验证数据
-    const count = await Blacklist.countDocuments({ status: 'published', visibility: 'public' });
-    console.log(`数据库中现有 ${count} 条公开记录`);
+    const blacklistCount = await Blacklist.countDocuments({ status: 'published', visibility: 'public' });
+    const userCount = await User.countDocuments({});
+    console.log(`数据库中现有 ${blacklistCount} 条公开记录`);
+    console.log(`数据库中现有 ${userCount} 个用户`);
     
   } catch (error) {
     console.error('数据种子失败:', error);

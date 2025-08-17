@@ -24,6 +24,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SearchLimitationBanner } from "@/components/guest/FeatureLimitation";
+import { useSearchDebounce } from "@/hooks/useDebounce";
 
 import { RegistrationGuide } from "@/components/guest/RegistrationGuide";
 import { useAuth } from "@/hooks/useAuth";
@@ -101,7 +102,7 @@ export default function SearchPage() {
 		localStorage.removeItem("guest_search_history");
 	};
 
-	const performSearch = async (query: string) => {
+	const performSearchOriginal = async (query: string) => {
 		if (!query.trim()) return;
 
 		// 检查搜索限制
@@ -139,6 +140,9 @@ export default function SearchPage() {
 			setLoading(false);
 		}
 	};
+
+	// 防抖的搜索函数
+	const performSearch = useSearchDebounce(performSearchOriginal, 500, 1);
 
 	const handleSearch = (value: string) => {
 		setSearchValue(value);

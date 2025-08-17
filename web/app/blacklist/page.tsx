@@ -14,6 +14,7 @@ import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
 import React, { useState } from "react";
 import useSwr from "swr";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
 	getReasonCodeLabel,
 	getRegionLabel,
@@ -76,6 +77,14 @@ export default function BlacklistPage() {
 	const { data, mutate, isLoading } = useSwr(
 		["/api/blacklist", query],
 		([url, p]) => fetcher(url, p),
+	);
+
+	// 防抖的查询更新函数
+	const debouncedSetQuery = useDebounce(
+		(newQuery: Query) => {
+			setQuery(newQuery);
+		},
+		600 // 600ms延迟
 	);
 	React.useEffect(() => {
 		(async () => {
@@ -306,7 +315,19 @@ export default function BlacklistPage() {
 						</div>
 					</Form.Item>
 					<Form.Item name="keyword" label="关键词">
-						<Input placeholder="失信人/原因/理由码/来源" allowClear={true} />
+						<Input
+							placeholder="失信人/原因/理由码/来源"
+							allowClear={true}
+							onChange={(e) => {
+								const keyword = e.target.value;
+								// 使用防抖更新查询
+								debouncedSetQuery({
+									...query,
+									keyword,
+									page: 1 // 重置到第一页
+								});
+							}}
+						/>
 					</Form.Item>
 					<Form.Item name="start" label="开始">
 						<DatePicker
